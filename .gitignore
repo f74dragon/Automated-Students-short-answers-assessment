@@ -28,6 +28,7 @@ htmlcov/
 coverage.xml
 *.cover
 .env.test
+.venv
 
 # Node/React
 node_modules/

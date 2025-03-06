@@ -5,9 +5,11 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Copy the backend directory contents into the container
-COPY backend/ /app/
+# COPY backend/ /app/
+COPY . /app/
+
 # Copy the llm directory into the container
-COPY llm/ /app/llm/
+# COPY llm/ /app/llm/
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
