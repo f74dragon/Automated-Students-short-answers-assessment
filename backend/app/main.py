@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import users as user_router
 from app.api import collections as collection_router
-from app.database.database import init_db
+from backend.app.database.connection import init_db
 
 app = FastAPI()
 
