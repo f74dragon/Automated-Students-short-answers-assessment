@@ -13,6 +13,7 @@ services:
       - db
     environment:
       - OLLAMA_URL=http://ollama:11434
+      - DATABASE_URL=postgresql://user:password@host.docker.internal:5432/mydatabase
   frontend:
     build:
       context: ./frontend

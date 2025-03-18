@@ -7,8 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 # from app.api import model as model_router
 
 from app.api import users as user_router
+from app.api import login as login_router
 from app.api import collections as collection_router
-from backend.app.database.connection import init_db
+from app.database.connection import init_db
 
 app = FastAPI()
 
@@ -48,3 +49,4 @@ async def generate_text(prompt: str):
 
 app.include_router(user_router.router, prefix="/api")
 app.include_router(collection_router.router, prefix="/api")
+app.include_router(login_router.router, prefix="/api")
