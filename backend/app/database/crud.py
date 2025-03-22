@@ -3,13 +3,15 @@ from app.models.user import User
 from app.models.collection import Collection
 from app.schemas.user_schema import UserCreate, UserResponse, UserListResponse, UserDeleteResponse
 from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
-
+from app.auth.auth import get_password_hash 
 
 """
 User Database Functions
 """
 def create_user(db: Session, user: UserCreate) -> User:
-    db_user = User(username=user.username, password=user.password)
+    """Create a new user with a hashed password."""
+    hashed_password = get_password_hash(user.password)  # Hash password before saving
+    db_user = User(username=user.username, password=hashed_password)  # Store hashed password
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

@@ -1,0 +1,94 @@
+/* Background styling */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #861F41, #E5751F);
+}
+
+/* Animated Login Box */
+.login-box {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 50px;
+  width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: float 1s ease-in-out infinite alternate;
+}
+
+/* Floating Effect */
+@keyframes float {
+  0% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(5px);
+  }
+}
+
+/* Title */
+.login-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 25px;
+}
+
+/* Input Fields */
+.login-box input {
+  width: 100%;
+  padding: 14px;
+  margin: 12px 0;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.29);
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+/* Input Hover and Focus Effect */
+.login-box input:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.login-box input:focus {
+  border: 2px solid #F7EA48;
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.03);
+}
+
+/* Button */
+.login-button {
+  width: 100%;
+  background: #CA4F00;
+  color: white;
+  padding: 14px;
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+
+/* Button Hover Effect */
+.login-button:hover {
+  background: #E5751F;
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(229, 117, 31, 0.4);
+}
+
+/* Message */
+.login-message {
+  margin-top: 15px;
+  text-align: center;
+  color: #F7EA48;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
+}

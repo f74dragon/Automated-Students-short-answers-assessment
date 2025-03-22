@@ -1,0 +1,188 @@
+/* Background styling */
+.home-container {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to bottom right, #861F41, #E5751F);
+    color: white;
+    padding: 20px;
+  }
+  
+  /* Taskbar Styling */
+  .taskbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+  
+  /* Left Side - Shortcuts */
+  .taskbar-left {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .taskbar-left a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  
+  .taskbar-left a:hover {
+    color: #F7EA48;
+  }
+  
+  /* Right Side - User Profile & Create Collection */
+  .taskbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .create-collection-btn {
+    background: #F7EA48;
+    color: #861F41;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    border: none;
+  }
+  
+  .create-collection-btn:hover {
+    background: #CA4F00;
+    color: white;
+  }
+  
+  /* Ceramic Content Box (70% of Screen Height) */
+  .content-box {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 25px;
+    padding: 40px;
+    width: 85%;
+    max-width: 1000px;
+    box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    color: #333;
+    height: 70vh;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  /* Collections Section */
+  .collections-container {
+    text-align: center;
+    overflow: hidden;
+  }
+  
+  /* Horizontal Scroll Film Reel */
+  .collections-list {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 10px;
+    scroll-snap-type: x mandatory;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: #CA4F00 transparent;
+  }
+  
+  /* Individual Collection Items */
+  .collection-item {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    padding: 20px;
+    min-width: 260px;
+    text-align: center;
+    cursor: pointer;
+    scroll-snap-align: center;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+  
+  .collection-item:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 1);
+  }
+  
+  /* Full-Screen Modal (Opens Centered Immediately) */
+  .fullscreen-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 90%;
+    max-width: 1500px;
+    height: 70vh;
+    background: rgba(255, 255, 255, 0.98);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 50px;
+    color: #333;
+    border-radius: 25px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    transform: translate(-50%, -50%);
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  /* Close Button */
+  .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #CA4F00;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .close-btn:hover {
+    background: #861F41;
+  }
+  
+  /* Exit Button */
+  .exit-btn {
+    margin-top: 20px;
+    background: #E5751F;
+    color: white;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+  }
+  
+  .exit-btn:hover {
+    background: #CA4F00;
+  }
+  
+  /* Fade-in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+  
