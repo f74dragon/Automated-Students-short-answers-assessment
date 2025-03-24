@@ -1,0 +1,1405 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+app/api/__init__.py
+app/api/collections.py
+app/api/login.py
+app/api/model.py
+app/api/students.py
+app/api/users.py
+app/auth/auth.py
+app/database/connection.py
+app/database/crud.py
+app/main.py
+app/models/base.py
+app/models/collection.py
+app/models/student.py
+app/models/user.py
+app/schemas/collection_schema.py
+app/schemas/student_schema.py
+app/schemas/token_schema.py
+app/schemas/user_schema.py
+back.txt
+docker-compose.yml
+Dockerfile
+requirements.txt
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/api/__init__.py">
+# This file is intentionally empty to make the directory a Python package
+</file>
+
+<file path="app/api/collections.py">
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database.connection import get_db
+from app.database import crud
+from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
+
+"""
+API Endpoints for Collection Operations
+"""
+
+router = APIRouter(prefix="/collections", tags=["collections"])
+
+# Creates a collection and inserts into db
+@router.post("/", response_model=CollectionResponse)
+def create_collection(collection: CollectionCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.create_collection(db=db, collection=collection)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+# Get a list of all collections in the db
+@router.get("/", response_model=CollectionListResponse)
+def get_all_collections(db: Session = Depends(get_db)):
+    return crud.get_all_collections(db=db)
+
+# Get a list of all collections for a given user; will need to change endpoint when integrating with JWT tokens
+# since user_id will be obtainable from token
+@router.get("/{user_id}", response_model=CollectionListResponse)
+def get_collections(user_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_collections(db=db, user_id=user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+# Get a specific collection for a given user; will need to change endpoint when integrating with JWT tokens
+# since user_id will be obtainable from token
+@router.get("/{user_id}/{collection_id}", response_model=CollectionResponse)
+def get_collection(user_id: int, collection_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_collection(db=db, user_id=user_id, collection_id=collection_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.delete("/{user_id}/{collection_id}", response_model=CollectionDeleteResponse)
+def remove_collection(user_id: int, collection_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.delete_collection(db=db, user_id=user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    
+@router.patch("/{user_id}/{collection_id}", response_model=CollectionResponse)
+def update_collection(user_id: int, collection_id: int, collection: CollectionCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.update_collection(db=db, user_id=user_id, collection_id=collection_id, new_collection=collection)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+</file>
+
+<file path="app/api/login.py">
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database.connection import get_db
+from app.database import crud
+from app.schemas.user_schema import UserCreate
+from app.schemas.token_schema import TokenResponse
+from app.auth.auth import authenticate_user, create_access_token
+from datetime import timedelta
+
+router = APIRouter()
+
+# @router.post("/register", response_model=UserCreate)
+# def register(user: UserCreate, db: Session = Depends(get_db)):
+#     existing_user = db.query(User).filter(User.username == user.username).first()
+#     if existing_user:
+#         raise HTTPException(status_code=400, detail="Username already taken")
+
+#     hashed_password = get_password_hash(user.password)
+#     new_user = User(username=user.username, password_hash=hashed_password)
+#     db.add(new_user)
+#     db.commit()
+#     db.refresh(new_user)
+#     return new_user
+
+@router.post("/login", response_model=TokenResponse)
+def login(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = authenticate_user(db, user.username, user.password)
+    if not db_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    access_token = create_access_token(data={"sub": db_user.username}, expires_delta=timedelta(minutes=30))
+    return {"access_token": access_token, "token_type": "bearer"}
+</file>
+
+<file path="app/api/model.py">
+from fastapi import APIRouter, HTTPException
+import os
+from llm.services.ollama_service import OllamaService
+
+router = APIRouter()
+ollama_service = OllamaService(
+    base_url=os.getenv("OLLAMA_URL", "http://localhost:11434"),
+    max_retries=3,
+    initial_retry_delay=1.0
+)
+
+@router.get("/status")
+async def get_model_status():
+    """Check if the model is downloaded and available."""
+    try:
+        exists = await ollama_service.check_model_exists()
+        return {
+            "status": "available" if exists else "not_found",
+            "model": ollama_service.model_name
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/info")
+async def get_model_info():
+    """Get detailed information about the model."""
+    try:
+        info = await ollama_service.get_model_info()
+        if not info:
+            raise HTTPException(status_code=404, detail="Model information not available")
+        return info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+</file>
+
+<file path="app/api/students.py">
+# app/api/students.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database.connection import get_db
+from app.database import crud
+from app.schemas.student_schema import StudentCreate, StudentResponse, StudentListResponse, StudentDeleteResponse
+
+router = APIRouter(prefix="/students", tags=["students"])
+
+@router.post("/", response_model=StudentResponse)
+def create_student(student: StudentCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.create_student(db=db, student=student)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.get("/collection/{collection_id}", response_model=StudentListResponse)
+def get_students_by_collection(collection_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_students_by_collection(db=db, collection_id=collection_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.get("/{student_id}", response_model=StudentResponse)
+def get_student(student_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_student(db=db, student_id=student_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.delete("/{student_id}", response_model=StudentDeleteResponse)
+def remove_student(student_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.delete_student(db=db, student_id=student_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.patch("/{student_id}", response_model=StudentResponse)
+def update_student(student_id: int, student: StudentCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.update_student(db=db, student_id=student_id, student_update=student)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+</file>
+
+<file path="app/api/users.py">
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database.connection import get_db
+from app.database import crud
+from app.schemas.user_schema import UserCreate, UserResponse, UserListResponse, UserDeleteResponse
+
+"""
+API Endpoints for Collection Operations
+"""
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+# Creates a user and inserts into db
+@router.post("/", response_model=UserResponse)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    return crud.create_user(db=db, user=user)
+
+# Get a list of all users; only for backend testing
+@router.get("/", response_model=UserListResponse)
+def get_users(db: Session = Depends(get_db)):
+    return crud.get_users(db=db)
+
+# Get a specific user; will need to change endpoint when integrating with JWT tokens
+# since user_id will be obtainable from token
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_user(db=db, user_id=user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+# Get delete a specific user; only for backend testing
+@router.delete("/{user_id}", response_model=UserDeleteResponse)
+def remove_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.delete_user(db, user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+</file>
+
+<file path="app/auth/auth.py">
+from datetime import datetime, timedelta, timezone
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from fastapi import Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.models.user import User
+from app.database.connection import get_db
+
+SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_password_hash(password: str):
+    """Hash the password using bcrypt."""
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str):
+    """Verify the password against its hash."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict, expires_delta: timedelta):
+    """Generate JWT token for authentication."""
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def authenticate_user(db: Session, username: str, password: str):
+    """Authenticate user by verifying hashed password."""
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not verify_password(password, user.password):
+        return False
+    return user
+</file>
+
+<file path="app/database/connection.py">
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.models.base import Base
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+engine = create_engine(DATABASE_URL)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+</file>
+
+<file path="app/database/crud.py">
+from sqlalchemy.orm import Session
+from app.models.user import User
+from app.models.collection import Collection
+from app.schemas.user_schema import UserCreate, UserResponse, UserListResponse, UserDeleteResponse
+from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
+from app.auth.auth import get_password_hash 
+
+"""
+User Database Functions
+"""
+def create_user(db: Session, user: UserCreate) -> User:
+    """Create a new user with a hashed password."""
+    hashed_password = get_password_hash(user.password)  # Hash password before saving
+    db_user = User(username=user.username, password=hashed_password)  # Store hashed password
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def get_users(db: Session) -> UserListResponse:
+    users = db.query(User).all()
+    return UserListResponse(users=[UserResponse(id=user.id, username=user.username, password=user.password) for user in users])
+
+def get_user(db: Session, user_id: int) -> UserResponse:
+    user = db.query(User).where(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    return UserResponse(id=user.id, username=user.username, password=user.password)
+
+def delete_user(db: Session, user_id: int) -> UserDeleteResponse:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    db.delete(user)
+    db.commit()
+    return UserDeleteResponse(message="User {user_id} deleted successfully")
+
+"""
+Collection Database Functions
+"""
+def create_collection(db: Session, collection: CollectionCreate) -> CollectionResponse:
+    user = db.query(User).filter(User.id == collection.user_id).first()
+    if not user:
+        raise ValueError(f"User {collection.user_id} not found") 
+    db_collection = Collection(user_id=collection.user_id, name=collection.name, description=collection.description)
+    db.add(db_collection)
+    db.commit()
+    db.refresh(db_collection)
+    return CollectionResponse.model_validate(db_collection)
+
+def get_all_collections(db: Session) -> CollectionListResponse:
+    collections = db.query(Collection).all()
+    return CollectionListResponse(collections=[CollectionResponse(id=col.id, name=col.name, description=col.description, user_id=col.user_id) for col in collections])
+
+def get_collections(db: Session, user_id: int) -> CollectionListResponse:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    collections = db.query(Collection).where(Collection.user_id == user_id).all()
+    return CollectionListResponse(collections=[CollectionResponse(id=col.id, name=col.name, description=col.description, user_id=col.user_id) for col in collections])
+
+def get_collection(db: Session, user_id: int, collection_id: int) -> CollectionResponse:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    collection = db.query(Collection).filter(Collection.user_id == user_id, Collection.id == collection_id).first()
+    if not collection:
+        raise ValueError(f"Collection {collection_id} for User {user_id} not found") 
+    return CollectionResponse.model_validate(collection)
+
+
+def delete_collection(db: Session, user_id: int, collection_id: int) -> CollectionDeleteResponse:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    collection = db.query(Collection).filter(Collection.user_id == user_id, Collection.id == collection_id).first()
+    if not collection:
+        raise ValueError(f"Collection {collection_id} not found") 
+    db.delete(collection)
+    db.commit()
+    return UserDeleteResponse(message=f"Collection {collection_id} for User {user_id} deleted successfully")
+    
+def update_collection(db: Session, user_id: int, collection_id: int, new_collection: CollectionCreate) -> Collection:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    collection = db.query(Collection).filter(Collection.user_id == user_id, Collection.id == collection_id).first()
+    if not collection:
+        raise ValueError(f"Collection {collection_id} not found") 
+    for key, value in new_collection.model_dump(exclude_unset=True).items():
+        setattr(collection, key, value)
+    db.commit()
+    db.refresh(collection)  # Refresh instance
+    return CollectionResponse.model_validate(collection)
+
+# app/database/crud.py
+# Add these new functions for student operations
+def create_student(db: Session, student: StudentCreate) -> StudentResponse:
+    collection = db.query(Collection).filter(Collection.id == student.collection_id).first()
+    if not collection:
+        raise ValueError(f"Collection {student.collection_id} not found")
+    
+    db_student = Student(
+        name=student.name,
+        answer=student.answer,
+        collection_id=student.collection_id
+    )
+    db.add(db_student)
+    db.commit()
+    db.refresh(db_student)
+    return StudentResponse.model_validate(db_student)
+
+def get_students_by_collection(db: Session, collection_id: int) -> StudentListResponse:
+    students = db.query(Student).filter(Student.collection_id == collection_id).all()
+    return StudentListResponse(students=[StudentResponse.model_validate(s) for s in students])
+
+def get_student(db: Session, student_id: int) -> StudentResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    return StudentResponse.model_validate(student)
+
+def delete_student(db: Session, student_id: int) -> StudentDeleteResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    db.delete(student)
+    db.commit()
+    return StudentDeleteResponse(message=f"Student {student_id} deleted successfully")
+
+def update_student(db: Session, student_id: int, student_update: StudentCreate) -> StudentResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    
+    for key, value in student_update.model_dump(exclude_unset=True).items():
+        setattr(student, key, value)
+    
+    db.commit()
+    db.refresh(student)
+    return StudentResponse.model_validate(student)
+</file>
+
+<file path="app/main.py">
+from fastapi import FastAPI, HTTPException
+import sys, requests
+from pathlib import Path
+
+# from llm.services.model_initializer import get_model_initializer
+from fastapi.middleware.cors import CORSMiddleware
+# from app.api import model as model_router
+
+from app.api import users as user_router
+from app.api import login as login_router
+from app.api import collections as collection_router
+from app.database.connection import init_db
+
+app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+    """Initialize the LLM model on startup."""
+    # initializer = get_model_initializer()
+    # success = await initializer.initialize()
+    # if not success:
+    #     raise Exception("Failed to initialize LLM model")
+
+# Include the model router
+# app.include_router(model_router.router, prefix="/api/model", tags=["model"])
+
+@app.post("/api/generate")
+async def generate_text(prompt: str):
+    """Generate text using the LLM model."""
+    response = requests.post(
+        "http://ollama:11434/api/generate",
+        json={
+            "model": "deepseek-r1:14b",
+            "prompt": prompt,
+            "stream": False
+        }
+    )
+    return response.json()
+
+app.include_router(user_router.router, prefix="/api")
+app.include_router(collection_router.router, prefix="/api")
+app.include_router(login_router.router, prefix="/api")
+app.include_router(students_router.router, prefix="/api")
+</file>
+
+<file path="app/models/base.py">
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+</file>
+
+<file path="app/models/collection.py">
+# app/models/collection.py
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from .base import Base
+
+class Collection(Base):
+    __tablename__ = "collections"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    question = Column(String)  # Add this field to store the question
+
+    # Define relationships
+    owner = relationship("User", back_populates="collections")
+    students = relationship("Student", back_populates="collection", cascade="all, delete")
+</file>
+
+<file path="app/models/student.py">
+# app/models/student.py
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
+from .base import Base
+
+class Student(Base):
+    __tablename__ = "students"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    answer = Column(Text)  # Using Text for potentially long answers
+    collection_id = Column(Integer, ForeignKey("collections.id", ondelete="CASCADE"), nullable=False)
+    
+    # Define relationship (many-to-one)
+    collection = relationship("Collection", back_populates="students")
+</file>
+
+<file path="app/models/user.py">
+from .base import Base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String, nullable=False, unique=True)
+    password = Column(String(255), nullable=False)  # Increased length for bcrypt hashes
+
+    # Define relationship (one-to-many)
+    collections = relationship("Collection", back_populates="owner", cascade="all, delete")
+</file>
+
+<file path="app/schemas/collection_schema.py">
+# app/schemas/collection_schema.py
+from pydantic import BaseModel
+from typing import List
+
+class CollectionCreate(BaseModel):
+    user_id: int
+    name: str
+    description: str
+    question: str  # Add this field
+
+class CollectionResponse(CollectionCreate):
+    id: int
+
+    class Config:
+        from_attributes = True 
+
+class CollectionListResponse(BaseModel):
+    collections: List[CollectionResponse]
+
+class CollectionDeleteResponse(BaseModel):
+    message: str
+</file>
+
+<file path="app/schemas/student_schema.py">
+# app/schemas/student_schema.py
+from pydantic import BaseModel
+from typing import Optional
+
+class StudentCreate(BaseModel):
+    name: str
+    answer: str
+    collection_id: int
+
+class StudentResponse(StudentCreate):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class StudentListResponse(BaseModel):
+    students: list[StudentResponse]
+
+class StudentDeleteResponse(BaseModel):
+    message: str
+</file>
+
+<file path="app/schemas/token_schema.py">
+from pydantic import BaseModel
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+</file>
+
+<file path="app/schemas/user_schema.py">
+from pydantic import BaseModel
+from typing import List
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(UserCreate):
+    id: int
+
+    class Config:
+        from_attributes = True  # Needed for ORM integration
+
+class UserListResponse(BaseModel):
+    users: List[UserResponse]
+
+    class Config:
+        from_attributes = True
+
+class UserDeleteResponse(BaseModel):
+    message: str
+</file>
+
+<file path="back.txt">
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+app/api/__init__.py
+app/api/collections.py
+app/api/login.py
+app/api/model.py
+app/api/users.py
+app/auth/auth.py
+app/database/connection.py
+app/database/crud.py
+app/main.py
+app/models/base.py
+app/models/collection.py
+app/models/user.py
+app/schemas/collection_schema.py
+app/schemas/token_schema.py
+app/schemas/user_schema.py
+docker-compose.yml
+Dockerfile
+requirements.txt
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/api/__init__.py">
+# This file is intentionally empty to make the directory a Python package
+</file>
+
+<file path="app/api/collections.py">
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database.connection import get_db
+from app.database import crud
+from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
+
+"""
+API Endpoints for Collection Operations
+"""
+
+router = APIRouter(prefix="/collections", tags=["collections"])
+
+# Creates a collection and inserts into db
+@router.post("/", response_model=CollectionResponse)
+def create_collection(collection: CollectionCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.create_collection(db=db, collection=collection)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+# Get a list of all collections in the db
+@router.get("/", response_model=CollectionListResponse)
+def get_all_collections(db: Session = Depends(get_db)):
+    return crud.get_all_collections(db=db)
+
+# Get a list of all collections for a given user; will need to change endpoint when integrating with JWT tokens
+# since user_id will be obtainable from token
+@router.get("/{user_id}", response_model=CollectionListResponse)
+def get_collections(user_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_collections(db=db, user_id=user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+# Get a specific collection for a given user; will need to change endpoint when integrating with JWT tokens
+# since user_id will be obtainable from token
+@router.get("/{user_id}/{collection_id}", response_model=CollectionResponse)
+def get_collection(user_id: int, collection_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_collection(db=db, user_id=user_id, collection_id=collection_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.delete("/{user_id}/{collection_id}", response_model=CollectionDeleteResponse)
+def remove_collection(user_id: int, collection_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.delete_collection(db=db, user_id=user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    
+@router.patch("/{user_id}/{collection_id}", response_model=CollectionResponse)
+def update_collection(user_id: int, collection_id: int, collection: CollectionCreate, db: Session = Depends(get_db)):
+    try:
+        return crud.update_collection(db=db, user_id=user_id, collection_id=collection_id, new_collection=collection)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+</file>
+
+<file path="app/api/login.py">
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database.connection import get_db
+from app.database import crud
+from app.schemas.user_schema import UserCreate
+from app.schemas.token_schema import TokenResponse
+from app.auth.auth import authenticate_user, create_access_token
+from datetime import timedelta
+
+router = APIRouter()
+
+# @router.post("/register", response_model=UserCreate)
+# def register(user: UserCreate, db: Session = Depends(get_db)):
+#     existing_user = db.query(User).filter(User.username == user.username).first()
+#     if existing_user:
+#         raise HTTPException(status_code=400, detail="Username already taken")
+
+#     hashed_password = get_password_hash(user.password)
+#     new_user = User(username=user.username, password_hash=hashed_password)
+#     db.add(new_user)
+#     db.commit()
+#     db.refresh(new_user)
+#     return new_user
+
+@router.post("/login", response_model=TokenResponse)
+def login(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = authenticate_user(db, user.username, user.password)
+    if not db_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    access_token = create_access_token(data={"sub": db_user.username}, expires_delta=timedelta(minutes=30))
+    return {"access_token": access_token, "token_type": "bearer"}
+</file>
+
+<file path="app/api/model.py">
+from fastapi import APIRouter, HTTPException
+import os
+from llm.services.ollama_service import OllamaService
+
+router = APIRouter()
+ollama_service = OllamaService(
+    base_url=os.getenv("OLLAMA_URL", "http://localhost:11434"),
+    max_retries=3,
+    initial_retry_delay=1.0
+)
+
+@router.get("/status")
+async def get_model_status():
+    """Check if the model is downloaded and available."""
+    try:
+        exists = await ollama_service.check_model_exists()
+        return {
+            "status": "available" if exists else "not_found",
+            "model": ollama_service.model_name
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/info")
+async def get_model_info():
+    """Get detailed information about the model."""
+    try:
+        info = await ollama_service.get_model_info()
+        if not info:
+            raise HTTPException(status_code=404, detail="Model information not available")
+        return info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+</file>
+
+<file path="app/api/users.py">
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database.connection import get_db
+from app.database import crud
+from app.schemas.user_schema import UserCreate, UserResponse, UserListResponse, UserDeleteResponse
+
+"""
+API Endpoints for Collection Operations
+"""
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+# Creates a user and inserts into db
+@router.post("/", response_model=UserResponse)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    return crud.create_user(db=db, user=user)
+
+# Get a list of all users; only for backend testing
+@router.get("/", response_model=UserListResponse)
+def get_users(db: Session = Depends(get_db)):
+    return crud.get_users(db=db)
+
+# Get a specific user; will need to change endpoint when integrating with JWT tokens
+# since user_id will be obtainable from token
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_user(db=db, user_id=user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+# Get delete a specific user; only for backend testing
+@router.delete("/{user_id}", response_model=UserDeleteResponse)
+def remove_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.delete_user(db, user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+</file>
+
+<file path="app/auth/auth.py">
+from datetime import datetime, timedelta, timezone
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from fastapi import Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.models.user import User
+from app.database.connection import get_db
+
+SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_password_hash(password: str):
+    """Hash the password using bcrypt."""
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str):
+    """Verify the password against its hash."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def create_access_token(data: dict, expires_delta: timedelta):
+    """Generate JWT token for authentication."""
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def authenticate_user(db: Session, username: str, password: str):
+    """Authenticate user by verifying hashed password."""
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not verify_password(password, user.password):
+        return False
+    return user
+</file>
+
+<file path="app/database/connection.py">
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.models.base import Base
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+engine = create_engine(DATABASE_URL)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+</file>
+
+<file path="app/database/crud.py">
+from sqlalchemy.orm import Session
+from app.models.user import User
+from app.models.collection import Collection
+from app.schemas.user_schema import UserCreate, UserResponse, UserListResponse, UserDeleteResponse
+from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
+from app.auth.auth import get_password_hash 
+
+"""
+User Database Functions
+"""
+def create_user(db: Session, user: UserCreate) -> User:
+    """Create a new user with a hashed password."""
+    hashed_password = get_password_hash(user.password)  # Hash password before saving
+    db_user = User(username=user.username, password=hashed_password)  # Store hashed password
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def get_users(db: Session) -> UserListResponse:
+    users = db.query(User).all()
+    return UserListResponse(users=[UserResponse(id=user.id, username=user.username, password=user.password) for user in users])
+
+def get_user(db: Session, user_id: int) -> UserResponse:
+    user = db.query(User).where(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    return UserResponse(id=user.id, username=user.username, password=user.password)
+
+def delete_user(db: Session, user_id: int) -> UserDeleteResponse:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    db.delete(user)
+    db.commit()
+    return UserDeleteResponse(message="User {user_id} deleted successfully")
+
+"""
+Collection Database Functions
+"""
+def create_collection(db: Session, collection: CollectionCreate) -> CollectionResponse:
+    user = db.query(User).filter(User.id == collection.user_id).first()
+    if not user:
+        raise ValueError(f"User {collection.user_id} not found") 
+    db_collection = Collection(user_id=collection.user_id, name=collection.name, description=collection.description)
+    db.add(db_collection)
+    db.commit()
+    db.refresh(db_collection)
+    return CollectionResponse.model_validate(db_collection)
+
+def get_all_collections(db: Session) -> CollectionListResponse:
+    collections = db.query(Collection).all()
+    return CollectionListResponse(collections=[CollectionResponse(id=col.id, name=col.name, description=col.description, user_id=col.user_id) for col in collections])
+
+def get_collections(db: Session, user_id: int) -> CollectionListResponse:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    collections = db.query(Collection).where(Collection.user_id == user_id).all()
+    return CollectionListResponse(collections=[CollectionResponse(id=col.id, name=col.name, description=col.description, user_id=col.user_id) for col in collections])
+
+def get_collection(db: Session, user_id: int, collection_id: int) -> CollectionResponse:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    collection = db.query(Collection).filter(Collection.user_id == user_id, Collection.id == collection_id).first()
+    if not collection:
+        raise ValueError(f"Collection {collection_id} for User {user_id} not found") 
+    return CollectionResponse.model_validate(collection)
+
+
+def delete_collection(db: Session, user_id: int, collection_id: int) -> CollectionDeleteResponse:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    collection = db.query(Collection).filter(Collection.user_id == user_id, Collection.id == collection_id).first()
+    if not collection:
+        raise ValueError(f"Collection {collection_id} not found") 
+    db.delete(collection)
+    db.commit()
+    return UserDeleteResponse(message=f"Collection {collection_id} for User {user_id} deleted successfully")
+    
+def update_collection(db: Session, user_id: int, collection_id: int, new_collection: CollectionCreate) -> Collection:
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise ValueError(f"User {user_id} not found") 
+    collection = db.query(Collection).filter(Collection.user_id == user_id, Collection.id == collection_id).first()
+    if not collection:
+        raise ValueError(f"Collection {collection_id} not found") 
+    for key, value in new_collection.model_dump(exclude_unset=True).items():
+        setattr(collection, key, value)
+    db.commit()
+    db.refresh(collection)  # Refresh instance
+    return CollectionResponse.model_validate(collection)
+</file>
+
+<file path="app/main.py">
+from fastapi import FastAPI, HTTPException
+import sys, requests
+from pathlib import Path
+
+# from llm.services.model_initializer import get_model_initializer
+from fastapi.middleware.cors import CORSMiddleware
+# from app.api import model as model_router
+
+from app.api import users as user_router
+from app.api import login as login_router
+from app.api import collections as collection_router
+from app.database.connection import init_db
+
+app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+    """Initialize the LLM model on startup."""
+    # initializer = get_model_initializer()
+    # success = await initializer.initialize()
+    # if not success:
+    #     raise Exception("Failed to initialize LLM model")
+
+# Include the model router
+# app.include_router(model_router.router, prefix="/api/model", tags=["model"])
+
+@app.post("/api/generate")
+async def generate_text(prompt: str):
+    """Generate text using the LLM model."""
+    response = requests.post(
+        "http://ollama:11434/api/generate",
+        json={
+            "model": "deepseek-r1:14b",
+            "prompt": prompt,
+            "stream": False
+        }
+    )
+    return response.json()
+
+app.include_router(user_router.router, prefix="/api")
+app.include_router(collection_router.router, prefix="/api")
+app.include_router(login_router.router, prefix="/api")
+</file>
+
+<file path="app/models/base.py">
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+</file>
+
+<file path="app/models/collection.py">
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from .base import Base
+
+class Collection(Base):
+    __tablename__ = "collections"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    # Define relationship (many-to-one)
+    owner = relationship("User", back_populates="collections")
+</file>
+
+<file path="app/models/user.py">
+from .base import Base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String, nullable=False, unique=True)
+    password = Column(String(255), nullable=False)  # Increased length for bcrypt hashes
+
+    # Define relationship (one-to-many)
+    collections = relationship("Collection", back_populates="owner", cascade="all, delete")
+</file>
+
+<file path="app/schemas/collection_schema.py">
+from pydantic import BaseModel
+from typing import List
+
+class CollectionCreate(BaseModel):
+    user_id: int
+    name: str
+    description: str
+
+class CollectionResponse(CollectionCreate):
+    id: int
+
+    class Config:
+        from_attributes = True 
+
+class CollectionListResponse(BaseModel):
+    collections: List[CollectionResponse]
+
+class CollectionDeleteResponse(BaseModel):
+    message: str
+</file>
+
+<file path="app/schemas/token_schema.py">
+from pydantic import BaseModel
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+</file>
+
+<file path="app/schemas/user_schema.py">
+from pydantic import BaseModel
+from typing import List
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(UserCreate):
+    id: int
+
+    class Config:
+        from_attributes = True  # Needed for ORM integration
+
+class UserListResponse(BaseModel):
+    users: List[UserResponse]
+
+    class Config:
+        from_attributes = True
+
+class UserDeleteResponse(BaseModel):
+    message: str
+</file>
+
+<file path="docker-compose.yml">
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: fastapi_app
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://your_user:your_password@db:5432/your_database
+    volumes:
+      - .:/app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+
+volumes:
+  postgres_data:
+</file>
+
+<file path="Dockerfile">
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the backend directory contents into the container
+# COPY backend/ /app/
+COPY . /app/
+
+# Copy the llm directory into the container
+# COPY llm/ /app/llm/
+
+# Install any needed packages specified in requirements.txt
+
+
+# Add the app directory to Python path
+ENV PYTHONPATH=/app
+
+# Expose port 8001 for the FastAPI app
+EXPOSE 8001
+
+# Command to run the FastAPI app with Uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+</file>
+
+<file path="requirements.txt">
+fastapi
+uvicorn
+requests
+httpx
+python-dotenv
+sqlalchemy
+psycopg2-binary
+python-jose[cryptography]
+passlib
+passlib[bcrypt]
+</file>
+
+</files>
+</file>
+
+<file path="docker-compose.yml">
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: fastapi_app
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://your_user:your_password@db:5432/your_database
+    volumes:
+      - .:/app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+
+volumes:
+  postgres_data:
+</file>
+
+<file path="Dockerfile">
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the backend directory contents into the container
+# COPY backend/ /app/
+COPY . /app/
+
+# Copy the llm directory into the container
+# COPY llm/ /app/llm/
+
+# Install any needed packages specified in requirements.txt
+
+
+# Add the app directory to Python path
+ENV PYTHONPATH=/app
+
+# Expose port 8001 for the FastAPI app
+EXPOSE 8001
+
+# Command to run the FastAPI app with Uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+</file>
+
+<file path="requirements.txt">
+fastapi
+uvicorn
+requests
+httpx
+python-dotenv
+sqlalchemy
+psycopg2-binary
+python-jose[cryptography]
+passlib
+passlib[bcrypt]
+</file>
+
+</files>

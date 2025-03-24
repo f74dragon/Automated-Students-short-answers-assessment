@@ -1,3 +1,4 @@
+# app/schemas/collection_schema.py
 from pydantic import BaseModel
 from typing import List
 
@@ -5,6 +6,7 @@ class CollectionCreate(BaseModel):
     user_id: int
     name: str
     description: str
+    question: str  # Add this field
 
 class CollectionResponse(CollectionCreate):
     id: int

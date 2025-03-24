@@ -1,8 +1,11 @@
+# app/database/crud.py
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.collection import Collection
+from app.models.student import Student  # Add this import
 from app.schemas.user_schema import UserCreate, UserResponse, UserListResponse, UserDeleteResponse
 from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
+from app.schemas.student_schema import StudentCreate, StudentResponse, StudentListResponse, StudentDeleteResponse  # Add this import
 from app.auth.auth import get_password_hash 
 
 """
@@ -92,3 +95,49 @@ def update_collection(db: Session, user_id: int, collection_id: int, new_collect
     db.commit()
     db.refresh(collection)  # Refresh instance
     return CollectionResponse.model_validate(collection)
+
+# Student CRUD operations
+def create_student(db: Session, student: StudentCreate) -> StudentResponse:
+    collection = db.query(Collection).filter(Collection.id == student.collection_id).first()
+    if not collection:
+        raise ValueError(f"Collection {student.collection_id} not found")
+    
+    db_student = Student(
+        name=student.name,
+        answer=student.answer,
+        collection_id=student.collection_id
+    )
+    db.add(db_student)
+    db.commit()
+    db.refresh(db_student)
+    return StudentResponse.model_validate(db_student)
+
+def get_students_by_collection(db: Session, collection_id: int) -> StudentListResponse:
+    students = db.query(Student).filter(Student.collection_id == collection_id).all()
+    return StudentListResponse(students=[StudentResponse.model_validate(s) for s in students])
+
+def get_student(db: Session, student_id: int) -> StudentResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    return StudentResponse.model_validate(student)
+
+def delete_student(db: Session, student_id: int) -> StudentDeleteResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    db.delete(student)
+    db.commit()
+    return StudentDeleteResponse(message=f"Student {student_id} deleted successfully")
+
+def update_student(db: Session, student_id: int, student_update: StudentCreate) -> StudentResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    
+    for key, value in student_update.model_dump(exclude_unset=True).items():
+        setattr(student, key, value)
+    
+    db.commit()
+    db.refresh(student)
+    return StudentResponse.model_validate(student)

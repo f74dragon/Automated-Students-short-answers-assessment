@@ -1,14 +1,12 @@
-from fastapi import FastAPI, HTTPException
 import sys, requests
 from pathlib import Path
-
-# from llm.services.model_initializer import get_model_initializer
+# app/main.py
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-# from app.api import model as model_router
-
-from app.api import users as user_router
-from app.api import login as login_router
-from app.api import collections as collection_router
+from app.api.users import router as users_router
+from app.api.login import router as login_router
+from app.api.collections import router as collections_router
+from app.api.students import router as students_router
 from app.database.connection import init_db
 
 app = FastAPI()
@@ -47,6 +45,7 @@ async def generate_text(prompt: str):
     )
     return response.json()
 
-app.include_router(user_router.router, prefix="/api")
-app.include_router(collection_router.router, prefix="/api")
-app.include_router(login_router.router, prefix="/api")
+app.include_router(users_router, prefix="/api")
+app.include_router(login_router, prefix="/api")
+app.include_router(collections_router, prefix="/api")
+app.include_router(students_router, prefix="/api")
