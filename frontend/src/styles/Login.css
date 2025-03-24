@@ -65,6 +65,7 @@
 
 /* Button */
 .login-button {
+  margin: 5px;
   width: 100%;
   background: #CA4F00;
   color: white;

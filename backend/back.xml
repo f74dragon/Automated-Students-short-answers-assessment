@@ -43,27 +43,22 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
-app/
-  api/
-    __init__.py
-    collections.py
-    login.py
-    model.py
-    users.py
-  auth/
-    auth.py
-  database/
-    connection.py
-    crud.py
-  models/
-    base.py
-    collection.py
-    user.py
-  schemas/
-    collection_schema.py
-    token_schema.py
-    user_schema.py
-  main.py
+app/api/__init__.py
+app/api/collections.py
+app/api/login.py
+app/api/model.py
+app/api/users.py
+app/auth/auth.py
+app/database/connection.py
+app/database/crud.py
+app/main.py
+app/models/base.py
+app/models/collection.py
+app/models/user.py
+app/schemas/collection_schema.py
+app/schemas/token_schema.py
+app/schemas/user_schema.py
+docker-compose.yml
 Dockerfile
 requirements.txt
 </directory_structure>
@@ -250,31 +245,37 @@ def remove_user(user_id: int, db: Session = Depends(get_db)):
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.models.user import User
+from app.database.connection import get_db
 
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# def get_password_hash(password: str):
-#     return pwd_context.hash(password)
+def get_password_hash(password: str):
+    """Hash the password using bcrypt."""
+    return pwd_context.hash(password)
 
-# def verify_password(plain_password: str, hashed_password: str):
-#     return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password: str, hashed_password: str):
+    """Verify the password against its hash."""
+    return pwd_context.verify(plain_password, hashed_password)
 
 def create_access_token(data: dict, expires_delta: timedelta):
+    """Generate JWT token for authentication."""
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def authenticate_user(db: Session, username: str, password: str):
+    """Authenticate user by verifying hashed password."""
     user = db.query(User).filter(User.username == username).first()
-    if not user or not password == user.password_hash:
+    if not user or not verify_password(password, user.password):
         return False
     return user
 </file>
@@ -311,13 +312,15 @@ from app.models.user import User
 from app.models.collection import Collection
 from app.schemas.user_schema import UserCreate, UserResponse, UserListResponse, UserDeleteResponse
 from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
-
+from app.auth.auth import get_password_hash 
 
 """
 User Database Functions
 """
 def create_user(db: Session, user: UserCreate) -> User:
-    db_user = User(username=user.username, password=user.password)
+    """Create a new user with a hashed password."""
+    hashed_password = get_password_hash(user.password)  # Hash password before saving
+    db_user = User(username=user.username, password=hashed_password)  # Store hashed password
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -400,6 +403,61 @@ def update_collection(db: Session, user_id: int, collection_id: int, new_collect
     return CollectionResponse.model_validate(collection)
 </file>
 
+<file path="app/main.py">
+from fastapi import FastAPI, HTTPException
+import sys, requests
+from pathlib import Path
+
+# from llm.services.model_initializer import get_model_initializer
+from fastapi.middleware.cors import CORSMiddleware
+# from app.api import model as model_router
+
+from app.api import users as user_router
+from app.api import login as login_router
+from app.api import collections as collection_router
+from app.database.connection import init_db
+
+app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
+    """Initialize the LLM model on startup."""
+    # initializer = get_model_initializer()
+    # success = await initializer.initialize()
+    # if not success:
+    #     raise Exception("Failed to initialize LLM model")
+
+# Include the model router
+# app.include_router(model_router.router, prefix="/api/model", tags=["model"])
+
+@app.post("/api/generate")
+async def generate_text(prompt: str):
+    """Generate text using the LLM model."""
+    response = requests.post(
+        "http://ollama:11434/api/generate",
+        json={
+            "model": "deepseek-r1:14b",
+            "prompt": prompt,
+            "stream": False
+        }
+    )
+    return response.json()
+
+app.include_router(user_router.router, prefix="/api")
+app.include_router(collection_router.router, prefix="/api")
+app.include_router(login_router.router, prefix="/api")
+</file>
+
 <file path="app/models/base.py">
 from sqlalchemy.orm import declarative_base
 
@@ -431,7 +489,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, nullable=False, unique=True)
-    password = Column(String(30), nullable=False)
+    password = Column(String(255), nullable=False)  # Increased length for bcrypt hashes
 
     # Define relationship (one-to-many)
     collections = relationship("Collection", back_populates="owner", cascade="all, delete")
@@ -491,59 +549,39 @@ class UserDeleteResponse(BaseModel):
     message: str
 </file>
 
-<file path="app/main.py">
-from fastapi import FastAPI, HTTPException
-import sys, requests
-from pathlib import Path
+<file path="docker-compose.yml">
+version: '3.8'
 
-# from llm.services.model_initializer import get_model_initializer
-from fastapi.middleware.cors import CORSMiddleware
-# from app.api import model as model_router
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-from app.api import users as user_router
-from app.api import login as login_router
-from app.api import collections as collection_router
-from app.database.connection import init_db
+  app:
+    build: .
+    container_name: fastapi_app
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://your_user:your_password@db:5432/your_database
+    volumes:
+      - .:/app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
 
-app = FastAPI()
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-    """Initialize the LLM model on startup."""
-    # initializer = get_model_initializer()
-    # success = await initializer.initialize()
-    # if not success:
-    #     raise Exception("Failed to initialize LLM model")
-
-# Include the model router
-# app.include_router(model_router.router, prefix="/api/model", tags=["model"])
-
-@app.post("/api/generate")
-async def generate_text(prompt: str):
-    """Generate text using the LLM model."""
-    response = requests.post(
-        "http://ollama:11434/api/generate",
-        json={
-            "model": "deepseek-r1:14b",
-            "prompt": prompt,
-            "stream": False
-        }
-    )
-    return response.json()
-
-app.include_router(user_router.router, prefix="/api")
-app.include_router(collection_router.router, prefix="/api")
-app.include_router(login_router.router, prefix="/api")
+volumes:
+  postgres_data:
 </file>
 
 <file path="Dockerfile">
@@ -586,6 +624,7 @@ sqlalchemy
 psycopg2-binary
 python-jose[cryptography]
 passlib
+passlib[bcrypt]
 </file>
 
 </files>
