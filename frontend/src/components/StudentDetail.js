@@ -38,7 +38,7 @@ const StudentDetail = ({ student, onClose, onEdit, onDelete, questions = [] }) =
   
   return (
     <div className="student-detail">
-      <button className="close-btn" onClick={onClose}>✖</button>
+      
       
       <div className="student-tabs">
         <button 
@@ -99,6 +99,7 @@ const StudentDetail = ({ student, onClose, onEdit, onDelete, questions = [] }) =
           )}
         </div>
       )}
+      <button className="close-btn" onClick={onClose}>Close</button>
     </div>
   );
 };

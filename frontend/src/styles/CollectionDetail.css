@@ -282,3 +282,27 @@
 .delete-confirm-btn:hover {
   background: #c82333;
 }
+
+.student-select-item {
+    margin: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.close-btn{
+    margin: 5px;
+    background: #f8d7da;
+    color: #721c24;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s ease;
+    border: none;
+}

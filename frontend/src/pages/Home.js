@@ -80,7 +80,7 @@ export default function Home() {
 
       <div className="content-box">
         <div className="collections-container">
-          <h2>Your Question Collections</h2>
+          <h2>Your Exam Collections</h2>
           <div className="collections-list">
             {collections.map((collection) => (
               <div

@@ -120,7 +120,7 @@ const CollectionDetail = ({ collection, onClose, onRefresh }) => {
 
   return (
     <div className="collection-detail">
-      <button className="close-btn" onClick={onClose}>✖</button>
+     
       
       <div className="collection-tabs">
         <button 
@@ -311,6 +311,7 @@ const CollectionDetail = ({ collection, onClose, onRefresh }) => {
           </div>
         </div>
       )}
+        <button className="close-btn" onClick={onClose}>Close</button>
     </div>
   );
 };
