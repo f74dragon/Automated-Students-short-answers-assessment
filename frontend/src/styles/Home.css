@@ -116,61 +116,96 @@
     background: rgba(255, 255, 255, 1);
   }
   
-  /* Full-Screen Modal (Opens Centered Immediately) */
-  .fullscreen-modal {
+  /* Modal Overlay - Darkens the background */
+  .modal-overlay {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 90%;
-    max-width: 1500px;
-    height: 70vh;
-    background: rgba(255, 255, 255, 0.98);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    padding: 50px;
+    z-index: 1000;
+  }
+
+  /* Modal Content - The white box that contains the content */
+  .modal-content {
+    background: white;
+    border-radius: 15px;
+    max-width: 90%;
+    width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     color: #333;
-    border-radius: 25px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-    transform: translate(-50%, -50%);
-    animation: fadeIn 0.3s ease-in-out;
+    position: relative;
   }
-  
-  /* Close Button */
-  .close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #CA4F00;
-    color: white;
-    padding: 10px 15px;
-    border: none;
+
+  /* Creation Form Styles */
+  .creation-form {
+    width: 500px;
+    padding: 30px;
+  }
+
+  .creation-form h2 {
+    color: #861F41;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
+    font-size: 16px;
   }
-  
-  .close-btn:hover {
-    background: #861F41;
+
+  .form-group textarea {
+    min-height: 120px;
+    resize: vertical;
   }
-  
-  /* Exit Button */
-  .exit-btn {
-    margin-top: 20px;
-    background: #E5751F;
-    color: white;
-    padding: 12px 18px;
-    border: none;
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+  }
+
+  .cancel-btn, .submit-btn {
+    padding: 12px 20px;
     border-radius: 8px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.3s ease-in-out;
+    border: none;
   }
-  
-  .exit-btn:hover {
+
+  .cancel-btn {
+    background: #f2f2f2;
+    color: #333;
+  }
+
+  .cancel-btn:hover {
+    background: #ddd;
+  }
+
+  .submit-btn {
+    background: #E5751F;
+    color: white;
+  }
+
+  .submit-btn:hover {
     background: #CA4F00;
   }
   
@@ -185,4 +220,3 @@
       transform: translate(-50%, -50%) scale(1);
     }
   }
-  

@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { getQuestions, deleteQuestion } from '../services/api';
+import { getQuestions, deleteQuestion, getStudents } from '../services/api';
 import QuestionForm from './QuestionForm';
+import StudentAnswerForm from './StudentAnswerForm';
 import '../styles/CollectionDetail.css';
 
 const CollectionDetail = ({ collection, onClose, onRefresh }) => {
   const [activeTab, setActiveTab] = useState('details');
   const [questions, setQuestions] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState(null);
+  const [showAnswerForm, setShowAnswerForm] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'questions' && collection) {
+      fetchQuestions();
+    }
+    
+    if (activeTab === 'answers' && collection) {
+      fetchStudents();
       fetchQuestions();
     }
   }, [activeTab, collection]);
@@ -27,6 +36,20 @@ const CollectionDetail = ({ collection, onClose, onRefresh }) => {
       setQuestions(data.questions || []);
     } catch (err) {
       setError('Failed to load questions');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const fetchStudents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getStudents();
+      setStudents(data.students || []);
+    } catch (err) {
+      setError('Failed to load students');
       console.error(err);
     } finally {
       setLoading(false);
@@ -77,6 +100,18 @@ const CollectionDetail = ({ collection, onClose, onRefresh }) => {
       setLoading(false);
     }
   };
+  
+  const handleStudentSelect = (student) => {
+    setSelectedStudent(student);
+    setShowAnswerForm(true);
+  };
+
+  const handleAnswerFormSubmit = async () => {
+    setShowAnswerForm(false);
+    setSelectedStudent(null);
+    // After answers are submitted, we don't need to refresh any data
+    // as we're not displaying answers in this component
+  };
 
   const truncateText = (text, maxLength = 100) => {
     if (!text) return '';
@@ -99,6 +134,12 @@ const CollectionDetail = ({ collection, onClose, onRefresh }) => {
           onClick={() => setActiveTab('questions')}
         >
           Questions
+        </button>
+        <button 
+          className={activeTab === 'answers' ? 'active' : ''} 
+          onClick={() => setActiveTab('answers')}
+        >
+          Submit Answers
         </button>
       </div>
       
@@ -165,6 +206,60 @@ const CollectionDetail = ({ collection, onClose, onRefresh }) => {
         </div>
       )}
       
+      {activeTab === 'answers' && (
+        <div className="answers-tab">
+          <div className="answers-header">
+            <h2>Submit Student Answers</h2>
+          </div>
+          
+          {loading && <div className="loading">Loading data...</div>}
+          
+          {error && <div className="error-message">{error}</div>}
+          
+          {!loading && !error && (
+            <>
+              {questions.length === 0 ? (
+                <div className="no-questions">
+                  <p>No questions have been added to this collection yet.</p>
+                  <button 
+                    className="add-first-question-btn" 
+                    onClick={() => setActiveTab('questions')}
+                  >
+                    Go to Questions Tab
+                  </button>
+                </div>
+              ) : students.length === 0 ? (
+                <div className="no-students">
+                  <p>No students have been added yet.</p>
+                  <button 
+                    className="add-student-btn" 
+                    onClick={() => window.location.href = '/students'}
+                  >
+                    Go to Students Page
+                  </button>
+                </div>
+              ) : (
+                <div className="student-selection">
+                  <h3>Select a student to submit answers for:</h3>
+                  <div className="students-list">
+                    {students.map(student => (
+                      <div 
+                        key={student.id} 
+                        className="student-select-item"
+                        onClick={() => handleStudentSelect(student)}
+                      >
+                        <h4>{student.student_name}</h4>
+                        <p>School ID: {student.school_id}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      
       {showQuestionForm && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -173,6 +268,22 @@ const CollectionDetail = ({ collection, onClose, onRefresh }) => {
               question={editingQuestion}
               onSubmit={handleQuestionFormSubmit}
               onCancel={() => setShowQuestionForm(false)}
+            />
+          </div>
+        </div>
+      )}
+      
+      {showAnswerForm && selectedStudent && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <StudentAnswerForm
+              student={selectedStudent}
+              collectionId={collection.id}
+              onSubmit={handleAnswerFormSubmit}
+              onCancel={() => {
+                setShowAnswerForm(false);
+                setSelectedStudent(null);
+              }}
             />
           </div>
         </div>

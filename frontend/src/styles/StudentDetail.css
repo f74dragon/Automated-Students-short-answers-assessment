@@ -1,0 +1,162 @@
+.student-detail {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: #333;
+  position: relative;
+  overflow-y: auto;
+  padding: 20px;
+  max-height: 80vh;
+}
+
+.student-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 10px;
+}
+
+.student-tabs button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background: none;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+  color: #666;
+}
+
+.student-tabs button.active {
+  color: #861F41;
+  border-bottom: 3px solid #861F41;
+}
+
+.student-tabs button:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Details Tab */
+.details-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.details-tab h1 {
+  color: #861F41;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.student-meta {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.student-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.edit-btn, .delete-btn {
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+  border: none;
+}
+
+.edit-btn {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.edit-btn:hover {
+  background: #dee2e6;
+}
+
+.delete-btn {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.delete-btn:hover {
+  background: #f5c6cb;
+}
+
+/* Answers Tab */
+.answers-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.answers-tab h2 {
+  color: #861F41;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.no-answers {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+
+.answer-item {
+  background: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.question-text {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.answer-text {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+/* Loading & Error States */
+.loading, .error-message {
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.loading {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+}

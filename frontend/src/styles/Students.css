@@ -1,0 +1,248 @@
+/* Background styling */
+.students-container {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #861F41, #E5751F);
+  color: white;
+  padding: 20px;
+}
+
+/* Taskbar Styling */
+.taskbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* Left Side - Shortcuts */
+.taskbar-left {
+  display: flex;
+  gap: 20px;
+}
+
+.taskbar-left a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.taskbar-left a:hover, .taskbar-left a.active {
+  color: #F7EA48;
+}
+
+/* Right Side - User Profile & Create Button */
+.taskbar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.create-student-btn {
+  background: #F7EA48;
+  color: #861F41;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+  border: none;
+}
+
+.create-student-btn:hover {
+  background: #CA4F00;
+  color: white;
+}
+
+/* Ceramic Content Box (70% of Screen Height) */
+.content-box {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 25px;
+  padding: 40px;
+  width: 85%;
+  max-width: 1200px;
+  box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.3);
+  color: #333;
+  height: 70vh;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.content-box h1 {
+  color: #861F41;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* No Students State */
+.no-students {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.no-students p {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.add-first-student-btn {
+  background: #E5751F;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+
+.add-first-student-btn:hover {
+  background: #CA4F00;
+}
+
+/* Students Grid */
+.students-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.student-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.student-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.student-card h3 {
+  color: #861F41;
+  margin-bottom: 10px;
+}
+
+.student-card p {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  max-width: 90%;
+  width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Delete Confirmation Modal */
+.delete-confirm {
+  width: 500px;
+  text-align: center;
+}
+
+.delete-confirm h3 {
+  color: #721c24;
+  margin-bottom: 15px;
+}
+
+.delete-confirm p {
+  margin-bottom: 25px;
+  color: #333;
+}
+
+.delete-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.cancel-btn {
+  background: #f8f9fa;
+  color: #333;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #e2e6ea;
+}
+
+.delete-confirm-btn {
+  background: #dc3545;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.delete-confirm-btn:hover {
+  background: #c82333;
+}
+
+/* Loading & Error States */
+.loading, .error-message {
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 20px auto;
+  width: 80%;
+}
+
+.loading {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+}

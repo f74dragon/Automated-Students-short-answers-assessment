@@ -67,9 +67,8 @@ export default function Home() {
     <div className="home-container">
       <div className="taskbar">
         <div className="taskbar-left">
-          <Link to="/home">🏠 Home</Link>
-          <Link to="/collections">📚 Collections</Link>
-          <Link to="/settings">⚙️ Settings</Link>
+          <Link to="/home" className="active">🏠 Home</Link>
+          <Link to="/students">👨‍🎓 Students</Link>
         </div>
         <div className="taskbar-right">
           <button className="create-collection-btn" onClick={() => setShowModal(true)}>
@@ -98,31 +97,41 @@ export default function Home() {
       </div>
 
       {selectedCollection && (
-        <div className="fullscreen-modal">
-          <CollectionDetail 
-            collection={selectedCollection} 
-            onClose={() => setSelectedCollection(null)}
-            onRefresh={fetchCollections}
-          />
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <CollectionDetail 
+              collection={selectedCollection} 
+              onClose={() => setSelectedCollection(null)}
+              onRefresh={fetchCollections}
+            />
+          </div>
         </div>
       )}
 
       {showModal && (
-        <div className="fullscreen-modal">
-          <button className="close-btn" onClick={() => setShowModal(false)}>✖</button>
-          <h2>Create New Collection</h2>
-          <input
-            type="text"
-            placeholder="Collection Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <button className="exit-btn" onClick={handleCreate}>Create</button>
+        <div className="modal-overlay">
+          <div className="modal-content creation-form">
+            <h2>Create New Collection</h2>
+            <div className="form-group">
+              <input
+                type="text"
+                placeholder="Collection Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <textarea
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <div className="form-actions">
+              <button className="cancel-btn" onClick={() => setShowModal(false)}>Cancel</button>
+              <button className="submit-btn" onClick={handleCreate}>Create</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
