@@ -2,9 +2,16 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.collection import Collection
 from app.models.question import Question
+from app.models.student import Student
+from app.models.student_answer import StudentAnswer
 from app.schemas.user_schema import UserCreate, UserResponse, UserListResponse, UserDeleteResponse
 from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
 from app.schemas.question_schema import QuestionCreate, QuestionResponse, QuestionListResponse, QuestionDeleteResponse
+from app.schemas.student_schema import StudentCreate, StudentResponse, StudentListResponse, StudentDeleteResponse
+from app.schemas.student_answer_schema import (
+    StudentAnswerCreate, StudentAnswerResponse, StudentAnswerListResponse, 
+    StudentAnswerDeleteResponse, StudentAnswerBulkCreate
+)
 from app.auth.auth import get_password_hash 
 
 """
@@ -200,3 +207,158 @@ def delete_question(db: Session, collection_id: int, question_id: int) -> Questi
     db.delete(question)
     db.commit()
     return QuestionDeleteResponse(message=f"Question {question_id} deleted successfully from Collection {collection_id}")
+
+"""
+Student Database Functions
+"""
+def create_student(db: Session, student: StudentCreate) -> StudentResponse:
+    db_student = Student(
+        school_id=student.school_id,
+        student_name=student.student_name
+    )
+    db.add(db_student)
+    db.commit()
+    db.refresh(db_student)
+    return StudentResponse.model_validate(db_student)
+
+def get_students(db: Session) -> StudentListResponse:
+    students = db.query(Student).all()
+    return StudentListResponse(students=[
+        StudentResponse(
+            id=student.id,
+            school_id=student.school_id,
+            student_name=student.student_name
+        ) for student in students
+    ])
+
+def get_student(db: Session, student_id: int) -> StudentResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    return StudentResponse.model_validate(student)
+
+def update_student(db: Session, student_id: int, new_student: StudentCreate) -> StudentResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    
+    for key, value in new_student.model_dump(exclude_unset=True).items():
+        setattr(student, key, value)
+    
+    db.commit()
+    db.refresh(student)
+    return StudentResponse.model_validate(student)
+
+def delete_student(db: Session, student_id: int) -> StudentDeleteResponse:
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    
+    db.delete(student)
+    db.commit()
+    return StudentDeleteResponse(message=f"Student {student_id} deleted successfully")
+
+"""
+Student Answer Database Functions
+"""
+def create_student_answer(db: Session, answer: StudentAnswerCreate) -> StudentAnswerResponse:
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == answer.student_id).first()
+    if not student:
+        raise ValueError(f"Student {answer.student_id} not found")
+    
+    # Verify question exists
+    question = db.query(Question).filter(Question.id == answer.question_id).first()
+    if not question:
+        raise ValueError(f"Question {answer.question_id} not found")
+    
+    db_answer = StudentAnswer(
+        student_id=answer.student_id,
+        question_id=answer.question_id,
+        answer_text=answer.answer_text
+    )
+    db.add(db_answer)
+    db.commit()
+    db.refresh(db_answer)
+    return StudentAnswerResponse.model_validate(db_answer)
+
+def create_student_answers_bulk(db: Session, bulk_answers: StudentAnswerBulkCreate) -> StudentAnswerListResponse:
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == bulk_answers.student_id).first()
+    if not student:
+        raise ValueError(f"Student {bulk_answers.student_id} not found")
+    
+    created_answers = []
+    for answer_data in bulk_answers.answers:
+        # Verify question exists
+        question = db.query(Question).filter(Question.id == answer_data["question_id"]).first()
+        if not question:
+            raise ValueError(f"Question {answer_data['question_id']} not found")
+        
+        db_answer = StudentAnswer(
+            student_id=bulk_answers.student_id,
+            question_id=answer_data["question_id"],
+            answer_text=answer_data["answer_text"]
+        )
+        db.add(db_answer)
+        created_answers.append(db_answer)
+    
+    db.commit()
+    
+    # Refresh all created answers
+    for answer in created_answers:
+        db.refresh(answer)
+    
+    return StudentAnswerListResponse(answers=[
+        StudentAnswerResponse.model_validate(answer) for answer in created_answers
+    ])
+
+def get_student_answers(db: Session, student_id: int) -> StudentAnswerListResponse:
+    # Verify student exists
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise ValueError(f"Student {student_id} not found")
+    
+    answers = db.query(StudentAnswer).filter(StudentAnswer.student_id == student_id).all()
+    return StudentAnswerListResponse(answers=[
+        StudentAnswerResponse.model_validate(answer) for answer in answers
+    ])
+
+def get_question_answers(db: Session, question_id: int) -> StudentAnswerListResponse:
+    # Verify question exists
+    question = db.query(Question).filter(Question.id == question_id).first()
+    if not question:
+        raise ValueError(f"Question {question_id} not found")
+    
+    answers = db.query(StudentAnswer).filter(StudentAnswer.question_id == question_id).all()
+    return StudentAnswerListResponse(answers=[
+        StudentAnswerResponse.model_validate(answer) for answer in answers
+    ])
+
+def get_student_answer(db: Session, answer_id: int) -> StudentAnswerResponse:
+    answer = db.query(StudentAnswer).filter(StudentAnswer.id == answer_id).first()
+    if not answer:
+        raise ValueError(f"Student answer {answer_id} not found")
+    
+    return StudentAnswerResponse.model_validate(answer)
+
+def update_student_answer(db: Session, answer_id: int, new_answer: StudentAnswerCreate) -> StudentAnswerResponse:
+    answer = db.query(StudentAnswer).filter(StudentAnswer.id == answer_id).first()
+    if not answer:
+        raise ValueError(f"Student answer {answer_id} not found")
+    
+    for key, value in new_answer.model_dump(exclude_unset=True).items():
+        setattr(answer, key, value)
+    
+    db.commit()
+    db.refresh(answer)
+    return StudentAnswerResponse.model_validate(answer)
+
+def delete_student_answer(db: Session, answer_id: int) -> StudentAnswerDeleteResponse:
+    answer = db.query(StudentAnswer).filter(StudentAnswer.id == answer_id).first()
+    if not answer:
+        raise ValueError(f"Student answer {answer_id} not found")
+    
+    db.delete(answer)
+    db.commit()
+    return StudentAnswerDeleteResponse(message=f"Student answer {answer_id} deleted successfully")

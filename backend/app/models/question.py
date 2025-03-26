@@ -11,3 +11,6 @@ class Question(Base):
 
     # Define relationship (many-to-one)
     collection = relationship("Collection", back_populates="questions")
+    
+    # Define relationship (one-to-many) with StudentAnswer
+    student_answers = relationship("StudentAnswer", back_populates="question", cascade="all, delete-orphan")

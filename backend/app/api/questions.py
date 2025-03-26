@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.database import crud
 from app.schemas.question_schema import QuestionCreate, QuestionResponse, QuestionListResponse, QuestionDeleteResponse
+from app.schemas.student_answer_schema import StudentAnswerListResponse
 
 """
 API Endpoints for Question Operations
@@ -55,5 +56,16 @@ def update_question(collection_id: int, question_id: int, question: QuestionCrea
 def delete_question(collection_id: int, question_id: int, db: Session = Depends(get_db)):
     try:
         return crud.delete_question(db=db, collection_id=collection_id, question_id=question_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+# Get all student answers for a specific question
+@router.get("/{question_id}/answers", response_model=StudentAnswerListResponse)
+def get_question_answers(collection_id: int, question_id: int, db: Session = Depends(get_db)):
+    try:
+        # First verify the question exists in this collection
+        crud.get_question(db=db, collection_id=collection_id, question_id=question_id)
+        # Then fetch all answers
+        return crud.get_question_answers(db=db, question_id=question_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
