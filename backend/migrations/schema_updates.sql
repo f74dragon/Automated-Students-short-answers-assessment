@@ -1,5 +1,6 @@
--- Add created_at to collections table
-ALTER TABLE collections ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+-- Add created_at column to collections table
+ALTER TABLE collections 
+ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
 -- Create questions table
 CREATE TABLE questions (
@@ -10,5 +11,5 @@ CREATE TABLE questions (
     FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
 );
 
--- Create index on collection_id for better query performance
+-- Create indexes
 CREATE INDEX idx_questions_collection_id ON questions(collection_id);
