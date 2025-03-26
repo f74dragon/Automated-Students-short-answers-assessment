@@ -1,0 +1,284 @@
+.collection-detail {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: #333;
+  position: relative;
+  overflow-y: auto;
+  padding: 20px;
+  max-height: 80vh;
+}
+
+.collection-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 10px;
+}
+
+.collection-tabs button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background: none;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+  color: #666;
+}
+
+.collection-tabs button.active {
+  color: #861F41;
+  border-bottom: 3px solid #861F41;
+}
+
+.collection-tabs button:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Details Tab */
+.details-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.details-tab h1 {
+  color: #861F41;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.collection-description {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.collection-meta {
+  color: #666;
+  font-style: italic;
+}
+
+/* Questions Tab */
+.questions-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.questions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.questions-header h2 {
+  color: #861F41;
+  margin: 0;
+}
+
+.add-question-btn {
+  background: #E5751F;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+
+.add-question-btn:hover {
+  background: #CA4F00;
+}
+
+/* Empty state */
+.no-questions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+}
+
+.no-questions p {
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #666;
+}
+
+.add-first-question-btn {
+  background: #E5751F;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+
+.add-first-question-btn:hover {
+  background: #CA4F00;
+}
+
+/* Questions List */
+.questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+
+.question-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.question-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.question-content {
+  flex: 1;
+}
+
+.question-content h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.question-content p {
+  margin: 0;
+  color: #666;
+}
+
+.question-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn, .delete-btn {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+  border: none;
+}
+
+.edit-btn {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.edit-btn:hover {
+  background: #dee2e6;
+}
+
+.delete-btn {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.delete-btn:hover {
+  background: #f5c6cb;
+}
+
+/* Loading & Error States */
+.loading, .error-message {
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.loading {
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 10px;
+  max-width: 90%;
+  width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Delete Confirmation */
+.delete-confirm {
+  width: 500px;
+  text-align: center;
+}
+
+.delete-confirm h3 {
+  color: #721c24;
+  margin-bottom: 15px;
+}
+
+.delete-confirm p {
+  margin-bottom: 25px;
+}
+
+.delete-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.delete-confirm-btn {
+  background: #dc3545;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.delete-confirm-btn:hover {
+  background: #c82333;
+}

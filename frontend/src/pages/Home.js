@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { getUsers, getCollections, createCollection } from "../services/api";
+import CollectionDetail from "../components/CollectionDetail";
 import "../styles/Home.css";
 
 export default function Home() {
@@ -21,13 +22,13 @@ export default function Home() {
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
         const username = decodedToken.sub;
 
-        const userRes = await axios.get(`http://localhost:8001/api/users/`);
-        const user = userRes.data.users.find(u => u.username === username);
+        const userRes = await getUsers();
+        const user = userRes.users.find(u => u.username === username);
         if (!user) throw new Error("User not found");
 
         setUserId(user.id);
-        const colRes = await axios.get(`http://localhost:8001/api/collections/${user.id}`);
-        setCollections(colRes.data.collections);
+        const colRes = await getCollections(user.id);
+        setCollections(colRes.collections);
       } catch (err) {
         console.error("Failed to fetch collections", err);
       }
@@ -35,10 +36,20 @@ export default function Home() {
 
     fetchUserAndCollections();
   }, [navigate]);
+  
+  const fetchCollections = async () => {
+    if (!userId) return;
+    try {
+      const response = await getCollections(userId);
+      setCollections(response.collections);
+    } catch (err) {
+      console.error("Failed to fetch collections", err);
+    }
+  };
 
   const handleCreate = async () => {
     try {
-      await axios.post("http://localhost:8001/api/collections/", {
+      await createCollection({
         name,
         description,
         user_id: userId
@@ -46,9 +57,7 @@ export default function Home() {
       setShowModal(false);
       setName("");
       setDescription("");
-
-      const res = await axios.get(`http://localhost:8001/api/collections/${userId}`);
-      setCollections(res.data.collections);
+      fetchCollections();
     } catch (err) {
       console.error("Failed to create collection", err);
     }
@@ -90,10 +99,11 @@ export default function Home() {
 
       {selectedCollection && (
         <div className="fullscreen-modal">
-          <button className="close-btn" onClick={() => setSelectedCollection(null)}>✖</button>
-          <h1>{selectedCollection.name}</h1>
-          <p>{selectedCollection.description}</p>
-          <button className="exit-btn" onClick={() => setSelectedCollection(null)}>Exit</button>
+          <CollectionDetail 
+            collection={selectedCollection} 
+            onClose={() => setSelectedCollection(null)}
+            onRefresh={fetchCollections}
+          />
         </div>
       )}
 

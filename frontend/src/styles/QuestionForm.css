@@ -1,0 +1,81 @@
+.question-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  padding: 20px;
+  margin: 0 auto;
+}
+
+.question-form h2 {
+  color: #861F41;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-group textarea.error {
+  border-color: #e74c3c;
+}
+
+.error-text {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 5px;
+  display: block;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.cancel-btn, .submit-btn {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+  border: none;
+}
+
+.cancel-btn {
+  background: #f2f2f2;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background: #ddd;
+}
+
+.submit-btn {
+  background: #E5751F;
+  color: white;
+}
+
+.submit-btn:hover {
+  background: #CA4F00;
+}
