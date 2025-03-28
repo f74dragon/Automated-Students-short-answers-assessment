@@ -3,7 +3,6 @@ services:
   backend:
     build:
       context: ./backend
-      # dockerfile: ./backend/Dockerfile
     image: fastapi-backend
     container_name: fastapi-backend
     ports:
@@ -13,7 +12,8 @@ services:
       - db
     environment:
       - OLLAMA_URL=http://ollama:11434
-      - DATABASE_URL=postgresql://user:password@host.docker.internal:5432/mydatabase
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+  
   frontend:
     build:
       context: ./frontend
@@ -23,29 +23,27 @@ services:
       - "3000:80"
     depends_on:
       - backend
+  
   ollama:
-    build:
-      context: ./ollama
-    image: custom-ollama
+    image: ollama/ollama:latest  # Use the official image directly
     container_name: ollama
-    # Try to include all possible devices that might be needed
-    devices:
-      - /dev/dri:/dev/dri  # For AMD/Intel GPUs (ignored if doesn't exist)
-    # Add nvidia runtime but make it optional
-    runtime: nvidia
+    # For NVIDIA GPUs (ignored if not available)
     deploy:
       resources:
         reservations:
           devices:
-            - capabilities: [gpu]
+            - driver: nvidia
               count: all
-              driver: nvidia
+              capabilities: [gpu]
+    
+    # For AMD/Intel GPUs
+    devices:
+      - /dev/dri:/dev/dri  # Generic GPU access, ignored if doesn't exist
     ports:
       - "11434:11434"
     volumes:
       - ./llm/models:/root/.ollama/models
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
+  
   db:
     image: postgres:latest
     container_name: postgres-db
@@ -55,8 +53,3 @@ services:
       POSTGRES_DB: mydatabase
     ports:
       - "5432:5432"
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-
-# volumes:
-#   postgres_data:

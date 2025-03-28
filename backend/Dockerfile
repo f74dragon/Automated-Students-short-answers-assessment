@@ -4,18 +4,12 @@ FROM python:3.9-slim
 # Set the working directory in the container
 WORKDIR /app
 
+# Copy requirements first for better caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the backend directory contents into the container
-# COPY backend/ /app/
-COPY . /app/
-
-# Copy the llm directory into the container
-# COPY llm/ /app/llm/
-
-# Install any needed packages specified in requirements.txt
-
+# Copy only the app directory (more specific than copying everything)
+COPY ./app ./app
 
 # Add the app directory to Python path
 ENV PYTHONPATH=/app
