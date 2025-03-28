@@ -31,7 +31,11 @@ services:
           devices:
             - capabilities: [gpu]
     environment:
+<<<<<<< HEAD
       - NVIDIA_VISIBLE_DEVICES=all
+=======
+       - NVIDIA_VISIBLE_DEVICES=all
+>>>>>>> cd6c6e1 (Added LLM control and frontend changes)
     ports:
       - "11434:11434"
     volumes:

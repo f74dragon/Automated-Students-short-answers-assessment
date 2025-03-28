@@ -3,3 +3,13 @@ uvicorn
 requests
 httpx
 python-dotenv
+<<<<<<< HEAD
+=======
+sqlalchemy
+psycopg2-binary
+python-jose[cryptography]
+passlib
+passlib[bcrypt]
+bcrypt==3.2.2
+python-multipart
+>>>>>>> cd6c6e1 (Added LLM control and frontend changes)
