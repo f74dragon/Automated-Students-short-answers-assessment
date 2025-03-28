@@ -1,15 +1,17 @@
 # app/schemas/collection_schema.py
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class CollectionCreate(BaseModel):
     user_id: int
     name: str
-    description: str
-    question: str  # Add this field
+    description: Optional[str] = None
 
-class CollectionResponse(CollectionCreate):
+class CollectionResponse(BaseModel):
     id: int
+    user_id: int
+    name: str
+    description: Optional[str] = None
 
     class Config:
         from_attributes = True 

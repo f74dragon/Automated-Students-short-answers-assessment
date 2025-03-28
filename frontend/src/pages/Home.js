@@ -78,7 +78,7 @@ export default function Home() {
               <div
                 key={collection.id}
                 className="collection-item"
-                onClick={() => setSelectedCollection(collection)}
+                onClick={() => navigate(`/collection/${collection.id}`)}
               >
                 <h3>{collection.name}</h3>
                 <p>{collection.description}</p>

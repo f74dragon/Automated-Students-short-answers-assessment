@@ -1,10 +1,10 @@
 # app/schemas/student_schema.py
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
 
 class StudentCreate(BaseModel):
     name: str
-    answer: str
+    pid: str
     collection_id: int
 
 class StudentResponse(StudentCreate):
@@ -14,7 +14,7 @@ class StudentResponse(StudentCreate):
         from_attributes = True
 
 class StudentListResponse(BaseModel):
-    students: list[StudentResponse]
+    students: List[StudentResponse]
 
 class StudentDeleteResponse(BaseModel):
     message: str
