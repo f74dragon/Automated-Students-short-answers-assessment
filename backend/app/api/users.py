@@ -36,14 +36,3 @@ def remove_user(user_id: int, db: Session = Depends(get_db)):
         return crud.delete_user(db, user_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-
-@router.post("/", response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    # Check if username already exists
-    existing_user = db.query(User).filter(User.username == user.username).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail="Username already exists"
-        )
-    return crud.create_user(db=db, user=user)

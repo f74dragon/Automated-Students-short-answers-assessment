@@ -24,21 +24,28 @@ services:
     depends_on:
       - backend
   ollama:
-    image: ollama/ollama:latest
+    build:
+      context: ./ollama
+    image: custom-ollama
     container_name: ollama
+    # Try to include all possible devices that might be needed
+    devices:
+      - /dev/dri:/dev/dri  # For AMD/Intel GPUs (ignored if doesn't exist)
+    # Add nvidia runtime but make it optional
     runtime: nvidia
     deploy:
       resources:
         reservations:
           devices:
             - capabilities: [gpu]
-    environment:
-       - NVIDIA_VISIBLE_DEVICES=all
+              count: all
+              driver: nvidia
     ports:
       - "11434:11434"
     volumes:
       - ./llm/models:/root/.ollama/models
-    command: ["serve"]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
   db:
     image: postgres:latest
     container_name: postgres-db

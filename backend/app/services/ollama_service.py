@@ -95,13 +95,18 @@ class OllamaService:
         """Generate a response from the LLM using the given prompt."""
         try:
             self.logger.info(f"Generating response for prompt: {prompt[:50]}...")
+            
+            # Let Ollama container use its auto-detected GPU configuration
+            # The container will have already configured the optimal hardware settings
             response = await self._make_request_with_retry(
                 "POST",
                 "api/generate",
                 json={
                     "model": self.model_name,
                     "prompt": prompt,
-                    "stream": False
+                    "stream": False,
+                    # The hardware detection happens at the container level
+                    # No need to specify GPU options here as they're auto-configured
                 }
             )
             
