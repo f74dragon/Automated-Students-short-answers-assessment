@@ -36,3 +36,4 @@ def remove_user(user_id: int, db: Session = Depends(get_db)):
         return crud.delete_user(db, user_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+

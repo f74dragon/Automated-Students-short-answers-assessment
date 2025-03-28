@@ -12,8 +12,8 @@ services:
       - db
     environment:
       - OLLAMA_URL=http://ollama:11434
-      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
-  
+      #- DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+      - DATABASE_URL=postgresql://user:password@host.docker.internal:5432/mydatabase
   frontend:
     build:
       context: ./frontend
@@ -27,18 +27,6 @@ services:
   ollama:
     image: ollama/ollama:latest  # Use the official image directly
     container_name: ollama
-    # For NVIDIA GPUs (ignored if not available)
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    
-    # For AMD/Intel GPUs
-    devices:
-      - /dev/dri:/dev/dri  # Generic GPU access, ignored if doesn't exist
     ports:
       - "11434:11434"
     volumes:
