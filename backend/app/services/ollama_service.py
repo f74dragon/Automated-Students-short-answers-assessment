@@ -7,7 +7,7 @@ from typing import Dict, Optional, Tuple
 
 class OllamaService:
     def __init__(self, base_url: str = None, max_retries: int = 5, initial_retry_delay: float = 1.0):
-        self.base_url = base_url or os.environ.get("OLLAMA_URL", "http://ollama:11434")
+        self.base_url = base_url or os.environ.get("OLLAMA_URL", "http://localhost:11434")
         self.model_name = "gemma3:4b"
         self.logger = logging.getLogger(__name__)
         self.max_retries = max_retries
@@ -96,8 +96,8 @@ class OllamaService:
         try:
             self.logger.info(f"Generating response for prompt: {prompt[:50]}...")
             
-            # Let Ollama container use its auto-detected GPU configuration
-            # The container will have already configured the optimal hardware settings
+            # Let standalone Ollama use its auto-detected GPU configuration
+            # The standalone installation will have already configured the optimal hardware settings
             response = await self._make_request_with_retry(
                 "POST",
                 "api/generate",
@@ -105,7 +105,7 @@ class OllamaService:
                     "model": self.model_name,
                     "prompt": prompt,
                     "stream": False,
-                    # The hardware detection happens at the container level
+                    # The hardware detection happens at the standalone Ollama level
                     # No need to specify GPU options here as they're auto-configured
                 }
             )

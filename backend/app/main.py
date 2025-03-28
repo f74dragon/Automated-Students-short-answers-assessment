@@ -37,15 +37,15 @@ async def startup_event():
 @app.post("/api/generate")
 async def generate_text(prompt: str):
     """Generate text using the LLM model."""
-    # The GPU detection and configuration happens in the Ollama container
+    # The GPU detection and configuration happens in the standalone Ollama installation
     # so we don't need to specify any GPU options here
     response = requests.post(
-        "http://ollama:11434/api/generate",
+        "http://localhost:11434/api/generate",
         json={
             "model": "deepseek-r1:14b",
             "prompt": prompt,
             "stream": False
-            # Hardware detection is handled at the container level
+            # Hardware detection is handled by the standalone Ollama installation
         }
     )
     return response.json()

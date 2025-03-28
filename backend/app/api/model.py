@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 import os
-from llm.services.ollama_service import OllamaService
+from app.services.ollama_service import OllamaService
 
 router = APIRouter()
 ollama_service = OllamaService(
