@@ -79,3 +79,4 @@ Thumbs.db
 *.bak
 *.tmp
 *.temp
+docker-compose.override.yml
