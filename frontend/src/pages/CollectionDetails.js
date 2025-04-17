@@ -547,11 +547,23 @@ export default function CollectionDetails() {
             <p className="csv-format">Expected format: <code>question,model_answer</code></p>
             <p className="csv-example">Example: <code>"What is X?","X is Y"</code></p>
             
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => setQuestionsFile(e.target.files[0])}
-            />
+            <div className="file-upload-container">
+              <label className="file-upload-button" htmlFor="questions-csv-upload">
+                Choose CSV File
+              </label>
+              <input
+                id="questions-csv-upload"
+                type="file"
+                accept=".csv"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setQuestionsFile(file);
+                }}
+              />
+              <div className={`file-name-display ${questionsFile ? 'visible' : ''}`}>
+                {questionsFile ? questionsFile.name : ''}
+              </div>
+            </div>
             
             {uploadStatus && (
               <div className={`upload-status ${uploadStatus.error ? 'error' : 'success'}`}>
@@ -571,6 +583,7 @@ export default function CollectionDetails() {
               <button 
                 onClick={handleUploadQuestions}
                 disabled={!questionsFile}
+                className={questionsFile ? 'upload-highlight' : ''}
               >
                 Upload
               </button>
@@ -589,11 +602,23 @@ export default function CollectionDetails() {
             <p className="csv-example">Example: <code>"John Doe","johndoe@vt.edu","What is X?","X is Z"</code></p>
             <p className="csv-note">Note: Questions must already exist in the collection.</p>
             
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => setAnswersFile(e.target.files[0])}
-            />
+            <div className="file-upload-container">
+              <label className="file-upload-button" htmlFor="answers-csv-upload">
+                Choose CSV File
+              </label>
+              <input
+                id="answers-csv-upload"
+                type="file"
+                accept=".csv"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setAnswersFile(file);
+                }}
+              />
+              <div className={`file-name-display ${answersFile ? 'visible' : ''}`}>
+                {answersFile ? answersFile.name : ''}
+              </div>
+            </div>
             
             {uploadStatus && (
               <div className={`upload-status ${uploadStatus.error ? 'error' : 'success'}`}>
@@ -613,6 +638,7 @@ export default function CollectionDetails() {
               <button 
                 onClick={handleUploadAnswers}
                 disabled={!answersFile}
+                className={answersFile ? 'upload-highlight' : ''}
               >
                 Upload
               </button>
