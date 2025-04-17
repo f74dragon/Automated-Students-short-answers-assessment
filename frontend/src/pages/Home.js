@@ -72,19 +72,31 @@ export default function Home() {
 
       <div className="content-box">
         <div className="collections-container">
-          <h2>Your Question Collections</h2>
-          <div className="collections-list">
-            {collections.map((collection) => (
-              <div
-                key={collection.id}
-                className="collection-item"
-                onClick={() => navigate(`/collection/${collection.id}`)}
-              >
-                <h3>{collection.name}</h3>
-                <p>{collection.description}</p>
+          {collections.length === 0 ? (
+            <div className="empty-collections">
+              <h2>No Collections</h2>
+              <p>You don't have any collections yet. Create your first collection to get started!</p>
+              <button className="create-collection-btn create-first" onClick={() => setShowModal(true)}>
+                ➕ Create Collection
+              </button>
+            </div>
+          ) : (
+            <div className="collections-with-items">
+              <h2>Your Question Collections</h2>
+              <div className="collections-list">
+                {collections.map((collection) => (
+                  <div
+                    key={collection.id}
+                    className="collection-item"
+                    onClick={() => navigate(`/collection/${collection.id}`)}
+                  >
+                    <h3>{collection.name}</h3>
+                    <p>{collection.description}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -101,18 +113,28 @@ export default function Home() {
         <div className="fullscreen-modal">
           <button className="close-btn" onClick={() => setShowModal(false)}>✖</button>
           <h2>Create New Collection</h2>
-          <input
-            type="text"
-            placeholder="Collection Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <button className="exit-btn" onClick={handleCreate}>Create</button>
+          <div className="modal-form">
+            <div className="form-group">
+              <label htmlFor="collection-name">Collection Name</label>
+              <input
+                id="collection-name"
+                type="text"
+                placeholder="Enter a name for your collection"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="collection-description">Description</label>
+              <textarea
+                id="collection-description"
+                placeholder="Add a brief description (optional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+          </div>
+          <button className="exit-btn" onClick={handleCreate}>Create Collection</button>
         </div>
       )}
     </div>
