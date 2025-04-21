@@ -52,7 +52,7 @@
   margin-bottom: 15px;
 }
 
-button {
+.admin-section button {
   padding: 8px 16px;
   background-color: #4CAF50;
   color: white;
@@ -62,16 +62,17 @@ button {
   font-size: 14px;
 }
 
-button:hover {
+.admin-section button:hover {
   background-color: #45a049;
 }
 
-button:disabled {
+.admin-section button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
 }
 
-input, select {
+.admin-section input, 
+.admin-section select {
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -80,7 +81,7 @@ input, select {
   margin-bottom: 10px;
 }
 
-.fullscreen-modal {
+.admin-container .fullscreen-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -95,7 +96,7 @@ input, select {
   padding: 20px;
 }
 
-.close-btn {
+.admin-container .close-btn {
   position: absolute;
   top: 20px;
   right: 20px;
@@ -107,7 +108,7 @@ input, select {
 }
 
 /* Customize Grading Prompt Styles */
-.prompt-info {
+.admin-section .prompt-info {
   margin-bottom: 15px;
   background-color: #f0f8ff;
   padding: 10px 15px;
@@ -115,29 +116,29 @@ input, select {
   border-left: 4px solid #4682b4;
 }
 
-.prompt-info p {
+.admin-section .prompt-info p {
   margin-top: 0;
   margin-bottom: 10px;
 }
 
-.prompt-info ul {
+.admin-section .prompt-info ul {
   margin: 0;
   padding-left: 20px;
 }
 
-.prompt-info code {
+.admin-section .prompt-info code {
   background-color: #f1f1f1;
   padding: 2px 4px;
   border-radius: 3px;
   font-family: monospace;
 }
 
-.prompt-editor {
+.admin-section .prompt-editor {
   display: flex;
   flex-direction: column;
 }
 
-.prompt-textarea {
+.admin-section .prompt-textarea {
   width: 100%;
   min-height: 200px;
   font-family: monospace;
@@ -148,25 +149,25 @@ input, select {
   resize: vertical;
 }
 
-.prompt-actions {
+.admin-section .prompt-actions {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
 }
 
-.update-prompt-btn {
+.admin-section .update-prompt-btn {
   background-color: #4CAF50;
 }
 
-.reset-prompt-btn {
+.admin-section .reset-prompt-btn {
   background-color: #f44336;
 }
 
-.reset-prompt-btn:disabled {
+.admin-section .reset-prompt-btn:disabled {
   background-color: #cccccc;
 }
 
-.default-prompt-indicator {
+.admin-section .default-prompt-indicator {
   font-style: italic;
   color: #666;
   margin-top: 5px;

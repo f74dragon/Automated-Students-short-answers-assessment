@@ -70,8 +70,8 @@ async def grade_student_answer(student_answer_id: int, db: Session = Depends(get
         # Get question and student
         question = crud.get_question(db=db, question_id=student_answer.question_id)
         
-        # Initialize Ollama service
-        ollama_service = OllamaService()
+        # Get the singleton instance of Ollama service
+        ollama_service = await OllamaService.get_instance()
         
         # Ensure model is downloaded
         if not await ollama_service.check_model_exists():

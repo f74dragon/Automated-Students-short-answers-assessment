@@ -74,11 +74,31 @@ export default function Admin() {
           return;
         }
         
-        const response = await axios.get("http://localhost:8001/api/prompt", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setPromptTemplate(response.data.template);
-        setIsDefaultPrompt(response.data.is_default);
+        // First test if the prompt service is available
+        try {
+          await axios.get("http://localhost:8001/api/prompt/status");
+        } catch (statusError) {
+          console.error("Prompt service status check failed:", statusError);
+          alert("The prompt service appears to be unavailable. Please try again later.");
+          return;
+        }
+        
+        // Then get the actual prompt
+        try {
+          const response = await axios.get("http://localhost:8001/api/prompt", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setPromptTemplate(response.data.template);
+          setIsDefaultPrompt(response.data.is_default);
+        } catch (promptError) {
+          if (promptError.response && promptError.response.status === 401) {
+            alert("Authentication failed. Please log in again.");
+          } else {
+            console.error("Error fetching prompt:", promptError);
+            alert("Failed to load prompt template. The service may be experiencing issues.");
+          }
+          throw promptError;
+        }
       } catch (error) {
         console.error("Failed to fetch prompt template:", error);
         if (error.response && error.response.status === 401) {
@@ -106,6 +126,25 @@ export default function Admin() {
         return;
       }
       
+      // Make sure required placeholders are included
+      const requiredPlaceholders = ["{question}", "{model_answer}", "{student_answer}"];
+      const missingPlaceholders = requiredPlaceholders.filter(p => !promptTemplate.includes(p));
+      
+      if (missingPlaceholders.length > 0) {
+        alert(`Missing required placeholders: ${missingPlaceholders.join(", ")}. Please include all placeholders.`);
+        return;
+      }
+      
+      // First check if prompt service is available
+      try {
+        await axios.get("http://localhost:8001/api/prompt/status");
+      } catch (statusError) {
+        console.error("Prompt service status check failed:", statusError);
+        alert("The prompt service appears to be unavailable. Please try again later.");
+        return;
+      }
+      
+      // Then update the prompt
       const response = await axios.post("http://localhost:8001/api/prompt/update", 
         { template: promptTemplate },
         { headers: { Authorization: `Bearer ${token}` }}
@@ -120,8 +159,10 @@ export default function Admin() {
         alert("Authentication failed. Please log in again.");
         // Optionally redirect to login page
         // navigate("/login");
+      } else if (error.response && error.response.status === 400) {
+        alert("Invalid prompt template. Make sure all required placeholders are included.");
       } else {
-        alert("Failed to update prompt template. Make sure all required placeholders are included.");
+        alert("Failed to update prompt template. The service may be experiencing issues.");
       }
     } finally {
       setLoading(false);
@@ -138,6 +179,16 @@ export default function Admin() {
         return;
       }
       
+      // First check if prompt service is available
+      try {
+        await axios.get("http://localhost:8001/api/prompt/status");
+      } catch (statusError) {
+        console.error("Prompt service status check failed:", statusError);
+        alert("The prompt service appears to be unavailable. Please try again later.");
+        return;
+      }
+      
+      // Then reset the prompt
       const response = await axios.post("http://localhost:8001/api/prompt/reset", 
         {},
         { headers: { Authorization: `Bearer ${token}` }}
@@ -153,7 +204,7 @@ export default function Admin() {
         // Optionally redirect to login page
         // navigate("/login");
       } else {
-        alert("Failed to reset prompt template");
+        alert("Failed to reset prompt template. The service may be experiencing issues.");
       }
     } finally {
       setLoading(false);

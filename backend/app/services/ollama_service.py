@@ -5,8 +5,35 @@ import asyncio
 import re
 from typing import Dict, Optional, Tuple
 
+# Global singleton instance
+_instance = None
+_instance_lock = asyncio.Lock()
+
 class OllamaService:
-    def __init__(self, base_url: str = None, max_retries: int = 5, initial_retry_delay: float = 1.0):
+    """
+    Implements a singleton pattern to ensure the same instance is used application-wide.
+    This ensures prompt templates are consistent across different API endpoints.
+    """
+    @classmethod
+    async def get_instance(cls, base_url: str = None, max_retries: int = 5, initial_retry_delay: float = 1.0):
+        """Get the singleton instance of OllamaService."""
+        global _instance
+        if _instance is None:
+            async with _instance_lock:
+                if _instance is None:
+                    _instance = cls(base_url, max_retries, initial_retry_delay, _singleton=True)
+        return _instance
+    
+    def __init__(self, base_url: str = None, max_retries: int = 5, initial_retry_delay: float = 1.0, _singleton: bool = False):
+        """
+        Initialize OllamaService. To get a shared instance, use get_instance() instead.
+        The _singleton parameter ensures the constructor isn't directly called.
+        """
+        if not _singleton:
+            logging.warning(
+                "Direct instantiation of OllamaService is deprecated. "
+                "Use 'await OllamaService.get_instance()' to get the shared instance."
+            )
         self.base_url = base_url or os.environ.get("OLLAMA_URL", "http://localhost:11434")
         self.model_name = "gemma3:4b"
         self.logger = logging.getLogger(__name__)
