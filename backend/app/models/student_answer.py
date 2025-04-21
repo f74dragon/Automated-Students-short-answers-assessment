@@ -14,3 +14,4 @@ class StudentAnswer(Base):
     student = relationship("Student", back_populates="answers")
     question = relationship("Question", back_populates="student_answers")
     llm_responses = relationship("LLMResponse", back_populates="student_answer", cascade="all, delete")
+    evaluations = relationship("Evaluation", back_populates="student_answer")

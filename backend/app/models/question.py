@@ -13,3 +13,4 @@ class Question(Base):
     # Define relationships
     collection = relationship("Collection", back_populates="questions")
     student_answers = relationship("StudentAnswer", back_populates="question", cascade="all, delete")
+    evaluations = relationship("Evaluation", back_populates="question")

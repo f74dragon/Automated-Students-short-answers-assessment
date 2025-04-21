@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import api, { handleApiError } from "../utils/api";
 import "../styles/Login.css";
 
 export default function Login() {
@@ -14,7 +15,7 @@ export default function Login() {
     e.preventDefault();
     try {
       if (isSignup) {
-        // Signup request
+        // Signup request - use direct axios for this since we don't need auth
         await axios.post("http://localhost:8001/api/users/", {
           username,
           password,
@@ -24,20 +25,22 @@ export default function Login() {
         setUsername("");
         setPassword("");
       } else {
-        // Login request
+        // Login request - use direct axios since we're getting the token
         const response = await axios.post("http://localhost:8001/api/login", {
           username,
           password,
         });
+        // Store the token in localStorage
         localStorage.setItem("token", response.data.access_token);
         setMessage("Login successful!");
         navigate("/home");
       }
     } catch (error) {
+      const errorMsg = handleApiError(error);
       setMessage(
         isSignup
-          ? "Signup failed. Username may be taken."
-          : "Login failed. Please try again."
+          ? `Signup failed: ${errorMsg}`
+          : `Login failed: ${errorMsg}`
       );
     }
   };
