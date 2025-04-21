@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "../styles/Admin.css";
@@ -11,6 +11,9 @@ export default function Admin() {
   const [meanAbsoluteError, setMeanAbsoluteError] = useState(null);
   const [selectedModel, setSelectedModel] = useState("default-model");
   const [showModal, setShowModal] = useState(false);
+  const [promptTemplate, setPromptTemplate] = useState("");
+  const [isDefaultPrompt, setIsDefaultPrompt] = useState(true);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleDatasetUpload = async (e) => {
@@ -57,6 +60,103 @@ export default function Admin() {
       alert(`Model changed to ${model}`);
     } catch (err) {
       console.error("Failed to change model", err);
+    }
+  };
+
+  // Fetch current prompt template on component mount
+  useEffect(() => {
+    const fetchPromptTemplate = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.warn("No authentication token found");
+          return;
+        }
+        
+        const response = await axios.get("http://localhost:8001/api/prompt", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setPromptTemplate(response.data.template);
+        setIsDefaultPrompt(response.data.is_default);
+      } catch (error) {
+        console.error("Failed to fetch prompt template:", error);
+        if (error.response && error.response.status === 401) {
+          alert("Authentication failed. Please log in again.");
+          // Optionally redirect to login page
+          // navigate("/login");
+        } else {
+          alert("Failed to load prompt template");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPromptTemplate();
+  }, []);
+
+  // Handle updating the prompt template
+  const handleUpdatePrompt = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Authentication required. Please log in.");
+        return;
+      }
+      
+      const response = await axios.post("http://localhost:8001/api/prompt/update", 
+        { template: promptTemplate },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      setPromptTemplate(response.data.template);
+      setIsDefaultPrompt(response.data.is_default);
+      alert("Prompt template updated successfully!");
+    } catch (error) {
+      console.error("Failed to update prompt template:", error);
+      if (error.response && error.response.status === 401) {
+        alert("Authentication failed. Please log in again.");
+        // Optionally redirect to login page
+        // navigate("/login");
+      } else {
+        alert("Failed to update prompt template. Make sure all required placeholders are included.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle resetting the prompt template to default
+  const handleResetPrompt = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Authentication required. Please log in.");
+        return;
+      }
+      
+      const response = await axios.post("http://localhost:8001/api/prompt/reset", 
+        {},
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      setPromptTemplate(response.data.template);
+      setIsDefaultPrompt(response.data.is_default);
+      alert("Prompt template reset to default!");
+    } catch (error) {
+      console.error("Failed to reset prompt template:", error);
+      if (error.response && error.response.status === 401) {
+        alert("Authentication failed. Please log in again.");
+        // Optionally redirect to login page
+        // navigate("/login");
+      } else {
+        alert("Failed to reset prompt template");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,6 +210,56 @@ export default function Admin() {
             <option value="model-1">Model 1</option>
             <option value="model-2">Model 2</option>
           </select>
+        </div>
+
+        <div className="admin-section">
+          <h3>Customize Grading Prompt</h3>
+          <div className="prompt-info">
+            <p>
+              Customize the prompt template used by the LLM to grade student answers.
+              Make sure to include the required placeholders:
+            </p>
+            <ul>
+              <li><code>{"{question}"}</code> - The question being asked</li>
+              <li><code>{"{model_answer}"}</code> - The correct answer</li>
+              <li><code>{"{student_answer}"}</code> - The student's answer being graded</li>
+            </ul>
+          </div>
+          
+          <div className="prompt-editor">
+            <textarea
+              rows="10"
+              value={promptTemplate}
+              onChange={(e) => setPromptTemplate(e.target.value)}
+              disabled={loading}
+              placeholder="Loading prompt template..."
+              className="prompt-textarea"
+            />
+            
+            <div className="prompt-actions">
+              <button 
+                onClick={handleUpdatePrompt}
+                disabled={loading}
+                className="update-prompt-btn"
+              >
+                {loading ? "Saving..." : "Save Changes"}
+              </button>
+              
+              <button 
+                onClick={handleResetPrompt}
+                disabled={loading || isDefaultPrompt}
+                className="reset-prompt-btn"
+              >
+                Reset to Default
+              </button>
+            </div>
+            
+            {isDefaultPrompt && (
+              <div className="default-prompt-indicator">
+                <small>Using default prompt template</small>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

@@ -9,6 +9,7 @@ from app.api.collections import router as collections_router
 from app.api.students import router as students_router
 from app.api.questions import router as questions_router
 from app.api.student_answers import router as student_answers_router
+from app.api.prompt import router as prompt_router
 from app.database.connection import init_db
 
 app = FastAPI()
@@ -56,3 +57,4 @@ app.include_router(collections_router, prefix="/api")
 app.include_router(students_router, prefix="/api")
 app.include_router(questions_router, prefix="/api")
 app.include_router(student_answers_router, prefix="/api")
+app.include_router(prompt_router, prefix="/api/prompt", tags=["prompt"])

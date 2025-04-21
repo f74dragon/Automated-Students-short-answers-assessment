@@ -12,6 +12,19 @@ class OllamaService:
         self.logger = logging.getLogger(__name__)
         self.max_retries = max_retries
         self.initial_retry_delay = initial_retry_delay
+        
+        # Store the default prompt template
+        self.default_prompt_template = """Question: {question}
+
+Correct Answer: {model_answer}
+
+Student's Answer: {student_answer}
+
+Grade the student's answer based on the correct answer from (0.0 - 1.0). 
+Provide a brief explanation for your grade.
+"""
+        # Initialize current prompt to default
+        self.current_prompt_template = self.default_prompt_template
 
     async def _make_request_with_retry(self, method: str, endpoint: str, **kwargs) -> httpx.Response:
         """Make HTTP request with exponential backoff retry logic."""
@@ -178,6 +191,59 @@ class OllamaService:
         
         return feedback
     
+    def get_prompt_template(self) -> str:
+        """
+        Get the current prompt template.
+        
+        Returns:
+            Current prompt template string
+        """
+        return self.current_prompt_template
+    
+    def update_prompt_template(self, new_template: str) -> bool:
+        """
+        Update the current prompt template.
+        
+        Args:
+            new_template: The new prompt template to use
+            
+        Returns:
+            True if update successful, False otherwise
+        """
+        if not new_template or not isinstance(new_template, str):
+            self.logger.error("Invalid prompt template provided")
+            return False
+        
+        try:
+            # Validate template by ensuring it has the required placeholders
+            required_placeholders = ["{question}", "{model_answer}", "{student_answer}"]
+            for placeholder in required_placeholders:
+                if placeholder not in new_template:
+                    self.logger.error(f"Missing required placeholder: {placeholder}")
+                    return False
+            
+            self.current_prompt_template = new_template
+            self.logger.info("Prompt template updated successfully")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error updating prompt template: {e}")
+            return False
+    
+    def reset_prompt_template(self) -> bool:
+        """
+        Reset the prompt template to default.
+        
+        Returns:
+            True if reset successful, False otherwise
+        """
+        try:
+            self.current_prompt_template = self.default_prompt_template
+            self.logger.info("Prompt template reset to default")
+            return True
+        except Exception as e:
+            self.logger.error(f"Error resetting prompt template: {e}")
+            return False
+    
     def create_grading_prompt(self, question: str, model_answer: str, student_answer: str) -> str:
         """
         Create a prompt for the model to grade a student's answer.
@@ -190,13 +256,23 @@ class OllamaService:
         Returns:
             Formatted prompt string
         """
-        prompt = f"""Question: {question}
-
-Correct Answer: {model_answer}
-
-Student's Answer: {student_answer}
-
-Grade the student's answer based on the correct answer from (0.0 - 1.0). 
-Provide a brief explanation for your grade.
-"""
-        return prompt
+        try:
+            # Use the current template with the provided parameters
+            prompt = self.current_prompt_template.format(
+                question=question,
+                model_answer=model_answer,
+                student_answer=student_answer
+            )
+            return prompt
+        except KeyError as e:
+            self.logger.error(f"Missing placeholder in prompt template: {e}")
+            # Fall back to default template if there's an error
+            return self.default_prompt_template.format(
+                question=question,
+                model_answer=model_answer,
+                student_answer=student_answer
+            )
+        except Exception as e:
+            self.logger.error(f"Error creating grading prompt: {e}")
+            # Return a simple fallback prompt
+            return f"Question: {question}\nCorrect Answer: {model_answer}\nStudent's Answer: {student_answer}\nGrade from 0.0 to 1.0."
