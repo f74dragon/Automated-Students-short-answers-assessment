@@ -153,7 +153,7 @@ export default function Pairs() {
     <div className="steps-indicator">
       <div className={`step ${currentStep >= 1 ? "active" : ""}`}>
         <div className="step-number">1</div>
-        <div className="step-text">Create Prompt</div>
+        <div className="step-text">Create Prompt Template</div>
       </div>
       <div className="step-connector"></div>
       <div className={`step ${currentStep >= 2 ? "active" : ""}`}>
@@ -163,7 +163,7 @@ export default function Pairs() {
       <div className="step-connector"></div>
       <div className={`step ${currentStep >= 3 ? "active" : ""}`}>
         <div className="step-number">3</div>
-        <div className="step-text">Save</div>
+        <div className="step-text">Name and Save</div>
       </div>
     </div>
   );
@@ -175,32 +175,7 @@ export default function Pairs() {
       <div className="content-body">
         {currentStep === 1 && (
           <div className="step-content">
-            <h3>Step 1: Create Prompt</h3>
-            
-            <div className="form-group">
-              <label htmlFor="combination-name">Name *</label>
-              <input 
-                type="text"
-                id="combination-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="form-control"
-                placeholder="Enter a name for this prompt-model pair"
-                required
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="combination-description">Description (optional)</label>
-              <input 
-                type="text"
-                id="combination-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="form-control"
-                placeholder="Add a short description of this combination"
-              />
-            </div>
+            <h3>Step 1: Create Prompt Template</h3>
             
             <div className="form-group">
               <label htmlFor="prompt-template">Prompt Template *</label>
@@ -264,18 +239,34 @@ export default function Pairs() {
 
         {currentStep === 3 && (
           <div className="step-content">
-            <h3>Step 3: Review and Save</h3>
+            <h3>Step 3: Name, Review and Save</h3>
+            
+            <div className="form-group">
+              <label htmlFor="combination-name">Name *</label>
+              <input 
+                type="text"
+                id="combination-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="form-control"
+                placeholder="Enter a name for this prompt-model pair"
+                required
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="combination-description">Description (optional)</label>
+              <input 
+                type="text"
+                id="combination-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="form-control"
+                placeholder="Add a short description of this combination"
+              />
+            </div>
+            
             <div className="review-summary">
-              <h4>Name:</h4>
-              <p>{name}</p>
-              
-              {description && (
-                <>
-                  <h4>Description:</h4>
-                  <p>{description}</p>
-                </>
-              )}
-              
               <h4>Prompt Template:</h4>
               <pre>{prompt}</pre>
               

@@ -41,18 +41,18 @@ export default function CollectionDetails() {
         // Get the user ID from the token
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
         const username = decodedToken.sub;
-        const userRes = await axios.get(`http://localhost:8001/api/users/`);
+        const userRes = await axios.get(`/api/users/`);
         const user = userRes.data.users.find(u => u.username === username);
         if (!user) throw new Error("User not found");
 
         // Get collection
-        const collectionRes = await axios.get(`http://localhost:8001/api/collections/${user.id}/${id}`);
+        const collectionRes = await axios.get(`/api/collections/${user.id}/${id}`);
         setCollection(collectionRes.data);
 
         // If collection has a combination_id, fetch the combination details
         if (collectionRes.data.combination_id) {
           try {
-            const combinationRes = await axios.get(`http://localhost:8001/api/combinations/${collectionRes.data.combination_id}/`);
+            const combinationRes = await axios.get(`/api/combinations/${collectionRes.data.combination_id}`);
             setCombination(combinationRes.data);
           } catch (err) {
             console.error("Failed to fetch combination details", err);
@@ -60,11 +60,11 @@ export default function CollectionDetails() {
         }
 
         // Get questions for this collection
-        const questionsRes = await axios.get(`http://localhost:8001/api/questions/collection/${id}`);
+        const questionsRes = await axios.get(`/api/questions/collection/${id}`);
         setQuestions(questionsRes.data.questions);
 
         // Get students for this collection
-        const studentsRes = await axios.get(`http://localhost:8001/api/students/collection/${id}`);
+        const studentsRes = await axios.get(`/api/students/collection/${id}`);
         const fetchedStudents = studentsRes.data.students;
         setStudents(fetchedStudents);
 
@@ -94,7 +94,7 @@ export default function CollectionDetails() {
 
       // For each student and question, fetch answers
       for (const student of studentsList) {
-        const studentAnswersRes = await axios.get(`http://localhost:8001/api/student-answers/student/${student.id}`);
+        const studentAnswersRes = await axios.get(`/api/student-answers/student/${student.id}`);
         const studentAnswersList = studentAnswersRes.data.student_answers || [];
 
         // Group answers by question
@@ -125,7 +125,7 @@ export default function CollectionDetails() {
   // Fetch grade for a specific answer
   const fetchGradeForAnswer = async (answerID) => {
     try {
-      const gradeRes = await axios.get(`http://localhost:8001/api/student-answers/${answerID}/grades`);
+      const gradeRes = await axios.get(`/api/student-answers/${answerID}/grades`);
       return gradeRes.data;
     } catch (err) {
       // If no grade exists yet, that's okay - just return null
@@ -136,13 +136,13 @@ export default function CollectionDetails() {
   // Add a new question to the collection
   const handleAddQuestion = async () => {
     try {
-      await axios.post("http://localhost:8001/api/questions/", {
+      await axios.post("/api/questions/", {
         ...newQuestion,
         collection_id: parseInt(id)
       });
       
       // Refresh questions
-      const questionsRes = await axios.get(`http://localhost:8001/api/questions/collection/${id}`);
+      const questionsRes = await axios.get(`/api/questions/collection/${id}`);
       setQuestions(questionsRes.data.questions);
       
       // Reset form and close modal
@@ -156,13 +156,13 @@ export default function CollectionDetails() {
   // Add a new student to the collection
   const handleAddStudent = async () => {
     try {
-      await axios.post("http://localhost:8001/api/students/", {
+      await axios.post("/api/students/", {
         ...newStudent,
         collection_id: parseInt(id)
       });
       
       // Refresh students
-      const studentsRes = await axios.get(`http://localhost:8001/api/students/collection/${id}`);
+      const studentsRes = await axios.get(`/api/students/collection/${id}`);
       setStudents(studentsRes.data.students);
       
       // Reset form and close modal
@@ -189,7 +189,7 @@ export default function CollectionDetails() {
       formData.append('file', questionsFile);
       
       const response = await axios.post(
-        `http://localhost:8001/api/collections/${id}/upload-questions`,
+        `/api/collections/${id}/upload-questions`,
         formData,
         {
           headers: {
@@ -199,7 +199,7 @@ export default function CollectionDetails() {
       );
       
       // Refresh questions
-      const questionsRes = await axios.get(`http://localhost:8001/api/questions/collection/${id}`);
+      const questionsRes = await axios.get(`/api/questions/collection/${id}`);
       setQuestions(questionsRes.data.questions);
       
       setUploadStatus({
@@ -243,7 +243,7 @@ export default function CollectionDetails() {
       formData.append('file', answersFile);
       
       const response = await axios.post(
-        `http://localhost:8001/api/collections/${id}/upload-answers`,
+        `/api/collections/${id}/upload-answers`,
         formData,
         {
           headers: {
@@ -253,7 +253,7 @@ export default function CollectionDetails() {
       );
       
       // Refresh students and answers
-      const studentsRes = await axios.get(`http://localhost:8001/api/students/collection/${id}`);
+      const studentsRes = await axios.get(`/api/students/collection/${id}`);
       const updatedStudents = studentsRes.data.students;
       setStudents(updatedStudents);
       await fetchStudentAnswersAndGrades(updatedStudents); // Pass updated students list
@@ -286,7 +286,7 @@ export default function CollectionDetails() {
   // Add a new answer for a student
   const handleAddAnswer = async () => {
     try {
-      await axios.post("http://localhost:8001/api/student-answers/", {
+      await axios.post("/api/student-answers/", {
         answer: newAnswer.answer,
         student_id: selectedStudent.id,
         question_id: selectedQuestion.id
@@ -339,7 +339,7 @@ export default function CollectionDetails() {
     try {
       setGradingInProgress(prev => ({ ...prev, [answerID]: true }));
       
-      const gradeRes = await axios.post(`http://localhost:8001/api/student-answers/${answerID}/grade`);
+      const gradeRes = await axios.post(`/api/student-answers/${answerID}/grade`);
       
       // Update grades
       setGrades(prev => ({
