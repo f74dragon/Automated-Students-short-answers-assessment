@@ -9,8 +9,9 @@ services:
       - "8001:8001"
     depends_on:
       - db
+      - ollama
     environment:
-      - OLLAMA_URL=http://host.docker.internal:11434
+      - OLLAMA_URL=http://ollama:11434
       - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
       # - DATABASE_URL=postgresql://user:password@host.docker.internal:5432/mydatabase
   frontend:
@@ -32,3 +33,21 @@ services:
       POSTGRES_DB: mydatabase
     ports:
       - "5432:5432"
+      
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  ollama_data:

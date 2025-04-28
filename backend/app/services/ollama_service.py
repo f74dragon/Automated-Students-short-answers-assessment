@@ -37,15 +37,16 @@ class OllamaService:
 
         raise last_exception or Exception("All retry attempts failed")
 
-    async def check_model_exists(self) -> bool:
+    async def check_model_exists(self, model_name: str = None) -> bool:
         """Check if the model is already downloaded."""
-        self.logger.info("Checking if model exists...")
+        model_to_check = model_name or self.model_name
+        self.logger.info(f"Checking if model {model_to_check} exists...")
         try:
             response = await self._make_request_with_retry("GET", "api/tags")
             if response.status_code == 200:
                 models = response.json().get("models", [])
-                exists = any(model["name"] == self.model_name for model in models)
-                self.logger.info(f"Model {'exists' if exists else 'does not exist'}")
+                exists = any(model["name"] == model_to_check for model in models)
+                self.logger.info(f"Model {model_to_check} {'exists' if exists else 'does not exist'}")
                 return exists
             return False
         except Exception as e:

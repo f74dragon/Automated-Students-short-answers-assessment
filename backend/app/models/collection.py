@@ -9,8 +9,10 @@ class Collection(Base):
     name = Column(String, nullable=False)
     description = Column(String)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    combination_id = Column(Integer, ForeignKey("combinations.id", ondelete="SET NULL"), nullable=True)
 
     # Define relationships
     owner = relationship("User", back_populates="collections")
     students = relationship("Student", back_populates="collection", cascade="all, delete")
     questions = relationship("Question", back_populates="collection", cascade="all, delete")
+    combination = relationship("Combination", back_populates="collections")

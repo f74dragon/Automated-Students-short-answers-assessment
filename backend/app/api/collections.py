@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.database import crud
-from app.schemas.collection_schema import CollectionCreate, CollectionResponse, CollectionListResponse, CollectionDeleteResponse
+from app.schemas.collection_schema import (
+    CollectionCreate, 
+    CollectionResponse, 
+    CollectionListResponse, 
+    CollectionDeleteResponse,
+    CollectionUpdateCombination
+)
 from app.schemas.csv_schema import QuestionUploadResponse, AnswerUploadResponse
 from app.services.csv_service import CSVService
 
@@ -54,6 +60,26 @@ def remove_collection(user_id: int, collection_id: int, db: Session = Depends(ge
 def update_collection(user_id: int, collection_id: int, collection: CollectionCreate, db: Session = Depends(get_db)):
     try:
         return crud.update_collection(db=db, user_id=user_id, collection_id=collection_id, new_collection=collection)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.patch("/{user_id}/{collection_id}/combination", response_model=CollectionResponse)
+def update_collection_combination(
+    user_id: int, 
+    collection_id: int, 
+    update: CollectionUpdateCombination, 
+    db: Session = Depends(get_db)
+):
+    """Update just the combination for a collection."""
+    try:
+        # Create a CollectionCreate with just the combination_id field
+        collection_update = CollectionCreate(
+            user_id=user_id,
+            name="", # These will be ignored by the update function due to exclude_unset=True
+            description=None,
+            combination_id=update.combination_id
+        )
+        return crud.update_collection(db=db, user_id=user_id, collection_id=collection_id, new_collection=collection_update)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

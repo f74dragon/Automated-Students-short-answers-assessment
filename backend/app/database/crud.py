@@ -51,7 +51,20 @@ def create_collection(db: Session, collection: CollectionCreate) -> CollectionRe
     user = db.query(User).filter(User.id == collection.user_id).first()
     if not user:
         raise ValueError(f"User {collection.user_id} not found") 
-    db_collection = Collection(user_id=collection.user_id, name=collection.name, description=collection.description)
+    
+    # Check if combination_id is provided and exists
+    if collection.combination_id is not None:
+        from app.models.combination import Combination
+        combination = db.query(Combination).filter(Combination.id == collection.combination_id).first()
+        if not combination:
+            raise ValueError(f"Combination {collection.combination_id} not found")
+    
+    db_collection = Collection(
+        user_id=collection.user_id, 
+        name=collection.name, 
+        description=collection.description,
+        combination_id=collection.combination_id
+    )
     db.add(db_collection)
     db.commit()
     db.refresh(db_collection)
@@ -59,14 +72,30 @@ def create_collection(db: Session, collection: CollectionCreate) -> CollectionRe
 
 def get_all_collections(db: Session) -> CollectionListResponse:
     collections = db.query(Collection).all()
-    return CollectionListResponse(collections=[CollectionResponse(id=col.id, name=col.name, description=col.description, user_id=col.user_id) for col in collections])
+    return CollectionListResponse(collections=[
+        CollectionResponse(
+            id=col.id, 
+            name=col.name, 
+            description=col.description, 
+            user_id=col.user_id,
+            combination_id=col.combination_id
+        ) for col in collections
+    ])
 
 def get_collections(db: Session, user_id: int) -> CollectionListResponse:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise ValueError(f"User {user_id} not found") 
     collections = db.query(Collection).where(Collection.user_id == user_id).all()
-    return CollectionListResponse(collections=[CollectionResponse(id=col.id, name=col.name, description=col.description, user_id=col.user_id) for col in collections])
+    return CollectionListResponse(collections=[
+        CollectionResponse(
+            id=col.id, 
+            name=col.name, 
+            description=col.description, 
+            user_id=col.user_id,
+            combination_id=col.combination_id
+        ) for col in collections
+    ])
 
 def get_collection(db: Session, user_id: int, collection_id: int) -> CollectionResponse:
     user = db.query(User).filter(User.id == user_id).first()

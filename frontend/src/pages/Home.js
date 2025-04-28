@@ -5,11 +5,14 @@ import "../styles/Home.css";
 
 export default function Home() {
   const [collections, setCollections] = useState([]);
+  const [combinations, setCombinations] = useState([]);
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedCombination, setSelectedCombination] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,12 +24,12 @@ export default function Home() {
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
         const username = decodedToken.sub;
 
-        const userRes = await axios.get(`http://localhost:8001/api/users/`);
+        const userRes = await axios.get(`/api/users/`);
         const user = userRes.data.users.find(u => u.username === username);
         if (!user) throw new Error("User not found");
 
         setUserId(user.id);
-        const colRes = await axios.get(`http://localhost:8001/api/collections/${user.id}`);
+        const colRes = await axios.get(`/api/collections/${user.id}`);
         setCollections(colRes.data.collections);
       } catch (err) {
         console.error("Failed to fetch collections", err);
@@ -35,22 +38,54 @@ export default function Home() {
 
     fetchUserAndCollections();
   }, [navigate]);
+  
+  // Fetch combinations when modal is opened
+  useEffect(() => {
+    if (showModal) {
+      const fetchCombinations = async () => {
+        setLoading(true);
+        try {
+          const response = await axios.get("/api/combinations/");
+          setCombinations(response.data);
+          
+          if (response.data.length > 0) {
+            // Default to the first combination
+            setSelectedCombination(response.data[0].id);
+          }
+        } catch (error) {
+          console.error("Failed to fetch combinations:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchCombinations();
+    }
+  }, [showModal]);
 
   const handleCreate = async () => {
+    if (!name || !selectedCombination) {
+      alert("Please provide a name and select a grading pair");
+      return;
+    }
+
     try {
-      await axios.post("http://localhost:8001/api/collections/", {
+      await axios.post("/api/collections/", {
         name,
         description,
-        user_id: userId
+        user_id: userId,
+        combination_id: selectedCombination
       });
       setShowModal(false);
       setName("");
       setDescription("");
+      setSelectedCombination(null);
 
-      const res = await axios.get(`http://localhost:8001/api/collections/${userId}`);
+      const res = await axios.get(`/api/collections/${userId}`);
       setCollections(res.data.collections);
     } catch (err) {
       console.error("Failed to create collection", err);
+      alert("Failed to create collection: " + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -60,7 +95,7 @@ export default function Home() {
         <div className="taskbar-left">
           <Link to="/home">🏠 Home</Link>
           <Link to="/collections">📚 Collections</Link>
-          <Link to="/settings">⚙️ Settings</Link>
+          <Link to="/pairs">🔗 Pairs</Link>
         </div>
         <div className="taskbar-right">
           <button className="create-collection-btn" onClick={() => setShowModal(true)}>
@@ -132,6 +167,29 @@ export default function Home() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="collection-combination">Grading Pair *</label>
+              {loading ? (
+                <p>Loading grading pairs...</p>
+              ) : combinations.length > 0 ? (
+                <select
+                  id="collection-combination"
+                  value={selectedCombination}
+                  onChange={(e) => setSelectedCombination(parseInt(e.target.value))}
+                  required
+                >
+                  {combinations.map((combination) => (
+                    <option key={combination.id} value={combination.id}>
+                      {combination.name} - {combination.model_name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p>No grading pairs available. Please create one first in the Pairs section.</p>
+              )}
+              <small>Select a prompt-model pair to use for grading student answers.</small>
             </div>
           </div>
           <button className="exit-btn" onClick={handleCreate}>Create Collection</button>

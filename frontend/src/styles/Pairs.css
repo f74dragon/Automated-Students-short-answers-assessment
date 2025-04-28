@@ -1,5 +1,5 @@
-/* Admin Page Styles */
-.admin-container {
+/* Pairs Page Styles */
+.pairs-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -38,14 +38,14 @@
 }
 
 /* Main Content Structure */
-.admin-body {
+.pairs-body {
   display: flex;
   flex: 1;
   height: calc(100vh - 60px);
 }
 
 /* Sidebar */
-.admin-sidebar {
+.pairs-sidebar {
   width: 250px;
   background-color: #34495e;
   color: white;
@@ -92,7 +92,7 @@
   position: relative;
 }
 
-.admin-content {
+.pairs-content {
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -370,11 +370,11 @@
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .admin-body {
+  .pairs-body {
     flex-direction: column;
   }
   
-  .admin-sidebar {
+  .pairs-sidebar {
     width: 100%;
     height: auto;
   }

@@ -15,7 +15,7 @@ export default function Login() {
     try {
       if (isSignup) {
         // Signup request
-        await axios.post("http://localhost:8001/api/users/", {
+        await axios.post("/api/users/", {
           username,
           password,
         });
@@ -25,7 +25,7 @@ export default function Login() {
         setPassword("");
       } else {
         // Login request
-        const response = await axios.post("http://localhost:8001/api/login", {
+        const response = await axios.post("/api/login", {
           username,
           password,
         });

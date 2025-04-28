@@ -84,6 +84,42 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+.grading-info {
+  margin-top: 20px;
+  padding: 15px 20px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.grading-info h3 {
+  margin-top: 0;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 8px;
+}
+
+.grading-info p {
+  margin: 5px 0;
+  font-size: 16px;
+}
+
+.pair-description {
+  opacity: 0.9;
+  font-style: italic;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.grading-warning {
+  background-color: rgba(247, 234, 72, 0.2);
+}
+
+.grading-warning p {
+  color: #F7EA48;
+  font-weight: bold;
+}
+
 .collection-content {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 25px;

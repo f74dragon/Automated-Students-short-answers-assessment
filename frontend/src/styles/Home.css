@@ -211,7 +211,8 @@
   }
   
   .modal-form input, 
-  .modal-form textarea {
+  .modal-form textarea,
+  .modal-form select {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
@@ -222,7 +223,8 @@
   }
   
   .modal-form input:focus, 
-  .modal-form textarea:focus {
+  .modal-form textarea:focus,
+  .modal-form select:focus {
     border-color: #E5751F;
     box-shadow: 0 0 5px rgba(229, 117, 31, 0.5);
     outline: none;
@@ -232,6 +234,25 @@
   .modal-form textarea {
     min-height: 120px;
     resize: vertical;
+  }
+  
+  .form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+  }
+  
+  .modal-form select {
+    cursor: pointer;
+    appearance: menulist; /* Show the dropdown arrow */
+    background-color: white;
+    color: #333;
+  }
+  
+  .modal-form select option {
+    padding: 8px;
   }
   
   /* Close Button */

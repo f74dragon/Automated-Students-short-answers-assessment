@@ -7,6 +7,7 @@ export default function CollectionDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [collection, setCollection] = useState(null);
+  const [combination, setCombination] = useState(null);  // For storing the collection's combination
   const [questions, setQuestions] = useState([]);
   const [students, setStudents] = useState([]);
   const [studentAnswers, setStudentAnswers] = useState({});
@@ -47,6 +48,16 @@ export default function CollectionDetails() {
         // Get collection
         const collectionRes = await axios.get(`http://localhost:8001/api/collections/${user.id}/${id}`);
         setCollection(collectionRes.data);
+
+        // If collection has a combination_id, fetch the combination details
+        if (collectionRes.data.combination_id) {
+          try {
+            const combinationRes = await axios.get(`http://localhost:8001/api/combinations/${collectionRes.data.combination_id}/`);
+            setCombination(combinationRes.data);
+          } catch (err) {
+            console.error("Failed to fetch combination details", err);
+          }
+        }
 
         // Get questions for this collection
         const questionsRes = await axios.get(`http://localhost:8001/api/questions/collection/${id}`);
@@ -355,6 +366,26 @@ export default function CollectionDetails() {
         </button>
         <h1>{collection.name}</h1>
         <p>{collection.description}</p>
+        
+        {/* Grading pair information */}
+        {combination ? (
+          <div className="grading-info">
+            <h3>Grading Configuration</h3>
+            <p>
+              <strong>Prompt-Model Pair:</strong> {combination.name} ({combination.model_name})
+              {combination.description && <span className="pair-description"> - {combination.description}</span>}
+            </p>
+          </div>
+        ) : collection.combination_id ? (
+          <div className="grading-info">
+            <p>Loading grading configuration...</p>
+          </div>
+        ) : (
+          <div className="grading-info grading-warning">
+            <p>⚠️ No grading pair selected for this collection.</p>
+          </div>
+        )}
+        
         <div className="collection-actions">
           <button onClick={() => setShowUploadQuestionsModal(true)} className="upload-button">
             Upload Questions CSV
