@@ -92,6 +92,25 @@ export default function Admin() {
     }
   }, [urlView, urlTestId, loading]);
 
+  // Auto-refresh for running tests
+  useEffect(() => {
+    let intervalId;
+    
+    if (selectedTest && selectedTest.status === "running") {
+      // Set up polling when a running test is being viewed
+      intervalId = setInterval(() => {
+        refreshTestDetails(selectedTest.id);
+      }, 5000); // Poll every 5 seconds
+    }
+    
+    // Clean up interval when component unmounts or dependencies change
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [selectedTest]);
+
   useEffect(() => {
     if (!loading) {
       if (activeView === "models") {
@@ -115,6 +134,7 @@ export default function Admin() {
     }
   };
   
+  // Fetch complete test details including prompts
   const fetchTestDetails = async (testId) => {
     try {
       const response = await axios.get(`/api/tests/${testId}`);
@@ -138,6 +158,45 @@ export default function Admin() {
     } catch (err) {
       console.error(`Failed to fetch test details for ID ${testId}`, err);
       setError(`Failed to fetch test details: ${err.response?.data?.detail || err.message}`);
+    }
+  };
+  
+  // Refresh just the test data (used for polling)
+  const refreshTestDetails = async (testId) => {
+    try {
+      const response = await axios.get(`/api/tests/${testId}`);
+      
+      // Only update if status has changed or results have been added/modified
+      const currentResults = selectedTest.results ? selectedTest.results.length : 0;
+      const newResults = response.data.results ? response.data.results.length : 0;
+      
+      if (response.data.status !== selectedTest.status || newResults !== currentResults) {
+        console.log(`Test ${testId} updated: status=${response.data.status}, results=${newResults}`);
+        setSelectedTest(response.data);
+        
+        // If we have new prompt IDs that weren't previously loaded, fetch their details
+        if (response.data.prompt_ids) {
+          const newPromptIds = response.data.prompt_ids.filter(id => !testPrompts[id]);
+          
+          if (newPromptIds.length > 0) {
+            const updatedPrompts = {...testPrompts};
+            
+            for (const promptId of newPromptIds) {
+              try {
+                const promptResponse = await axios.get(`/api/prompts/${promptId}`);
+                updatedPrompts[promptId] = promptResponse.data;
+              } catch (promptErr) {
+                console.error(`Failed to fetch prompt details for ID ${promptId}`, promptErr);
+              }
+            }
+            
+            setTestPrompts(updatedPrompts);
+          }
+        }
+      }
+    } catch (err) {
+      console.error(`Failed to refresh test details for ID ${testId}`, err);
+      // Don't show error to user during auto-refresh to avoid error spam
     }
   };
   
@@ -409,16 +468,25 @@ export default function Admin() {
   const renderTestsView = () => {
     // If a test is selected, show its details
     if (selectedTest) {
+      // Add refresh message for running tests
+      const isRunning = selectedTest.status === "running";
       return (
         <div className="admin-content">
           <div className="test-header">
             <h2>Test Details: {selectedTest.name}</h2>
-            <button 
-              className="btn-secondary"
-              onClick={() => setSelectedTest(null)}
-            >
-              Back to Tests
-            </button>
+            <div className="test-header-actions">
+              {isRunning && (
+                <div className="auto-refresh-indicator">
+                  <span className="refresh-dot"></span> Auto-refreshing...
+                </div>
+              )}
+              <button 
+                className="btn-secondary"
+                onClick={() => setSelectedTest(null)}
+              >
+                Back to Tests
+              </button>
+            </div>
           </div>
           
           {selectedTest.description && (
