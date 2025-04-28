@@ -313,7 +313,7 @@
   .modal-form input:focus, 
   .modal-form textarea:focus,
   .modal-form select:focus {
-    border-color: #3498db;
+    border-color: #861F41;
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
     outline: none;
     background-color: white;
@@ -348,7 +348,7 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    background: #3498db;
+    background: #861F41;
     color: white;
     padding: 10px 15px;
     border: none;
@@ -358,13 +358,13 @@
   }
   
   .close-btn:hover {
-    background: #2980b9;
+    background: #861F41;
   }
   
   /* Exit Button */
   .exit-btn {
     margin-top: 20px;
-    background: #3498db;
+    background: #861F41;
     color: white;
     padding: 12px 24px;
     border: none;
@@ -377,7 +377,7 @@
   }
   
   .exit-btn:hover {
-    background: #2980b9;
+    background: #861F41;
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
   }
