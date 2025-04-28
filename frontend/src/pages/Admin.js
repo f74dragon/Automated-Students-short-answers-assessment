@@ -3,6 +3,31 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "../styles/Admin.css";
 
+// Default prompt template for new prompts
+const DEFAULT_PROMPT = `Question: {{question}}
+
+Correct Answer: {{model_answer}}
+
+Student's Answer: {{student_answer}}
+
+Grade the student's answer based on the correct answer from (0.0 - 1.0). 
+Provide a brief explanation for your grade.`;
+
+// Predefined academic categories
+const ACADEMIC_CATEGORIES = [
+  "General",
+  "Computer Science",
+  "Mathematics",
+  "English",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "History",
+  "Geography",
+  "Economics",
+  "Psychology"
+];
+
 export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState("models");
@@ -11,6 +36,18 @@ export default function Admin() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState(null);
   const navigate = useNavigate();
+  
+  // Prompts state
+  const [prompts, setPrompts] = useState([]);
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [promptName, setPromptName] = useState("");
+  const [promptCategory, setPromptCategory] = useState("Computer Science");
+  const [promptText, setPromptText] = useState(DEFAULT_PROMPT);
+  const [categories, setCategories] = useState(ACADEMIC_CATEGORIES);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentPromptId, setCurrentPromptId] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -35,10 +72,15 @@ export default function Admin() {
   }, [navigate]);
 
   useEffect(() => {
-    if (activeView === "models" && !loading) {
-      fetchModels();
+    if (!loading) {
+      if (activeView === "models") {
+        fetchModels();
+      } else if (activeView === "prompts") {
+        fetchPrompts();
+        fetchCategories();
+      }
     }
-  }, [activeView, loading]);
+  }, [activeView, loading, selectedCategory]);
 
   const fetchModels = async () => {
     try {
@@ -48,6 +90,34 @@ export default function Admin() {
       }
     } catch (err) {
       console.error("Failed to fetch models", err);
+      setError("Failed to fetch models");
+    }
+  };
+  
+  const fetchPrompts = async () => {
+    try {
+      const category = selectedCategory !== "All" ? selectedCategory : undefined;
+      const response = await axios.get("/api/prompts/", {
+        params: { category }
+      });
+      setPrompts(response.data);
+    } catch (err) {
+      console.error("Failed to fetch prompts", err);
+      setError("Failed to fetch prompts");
+    }
+  };
+  
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get("/api/prompts/categories/all");
+      if (response.data && response.data.categories) {
+        // Combine predefined categories with any additional ones from the database
+        const uniqueCategories = [...new Set([...ACADEMIC_CATEGORIES, ...response.data.categories])];
+        setCategories(uniqueCategories);
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+      // Fall back to predefined categories
     }
   };
 
@@ -81,6 +151,77 @@ export default function Admin() {
       setIsDownloading(false);
     }
   };
+  
+  const handleCreatePrompt = () => {
+    setIsEditing(false);
+    setCurrentPromptId(null);
+    setPromptName("");
+    setPromptCategory("Computer Science");
+    setPromptText(DEFAULT_PROMPT);
+    setIsPromptModalOpen(true);
+  };
+  
+  const handleEditPrompt = (prompt) => {
+    setIsEditing(true);
+    setCurrentPromptId(prompt.id);
+    setPromptName(prompt.name);
+    setPromptCategory(prompt.category);
+    setPromptText(prompt.prompt);
+    setIsPromptModalOpen(true);
+  };
+  
+  const handleDeletePrompt = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this prompt?")) return;
+    
+    try {
+      await axios.delete(`/api/prompts/${id}`);
+      // Refresh prompts list
+      fetchPrompts();
+    } catch (err) {
+      console.error("Failed to delete prompt", err);
+      setError(`Failed to delete prompt: ${err.response?.data?.detail || err.message}`);
+    }
+  };
+  
+  const handleSavePrompt = async () => {
+    if (!promptName.trim() || !promptCategory.trim() || !promptText.trim()) {
+      setError("Please complete all required fields");
+      return;
+    }
+    
+    try {
+      const promptData = {
+        name: promptName,
+        category: promptCategory,
+        prompt: promptText
+      };
+      
+      if (isEditing) {
+        await axios.put(`/api/prompts/${currentPromptId}`, promptData);
+      } else {
+        await axios.post("/api/prompts/", promptData);
+      }
+      
+      // Reset form and close modal
+      setIsPromptModalOpen(false);
+      setPromptName("");
+      setPromptCategory("Computer Science");
+      setPromptText(DEFAULT_PROMPT);
+      setIsEditing(false);
+      setCurrentPromptId(null);
+      
+      // Refresh prompts list
+      fetchPrompts();
+    } catch (err) {
+      console.error("Failed to save prompt", err);
+      setError(`Failed to save prompt: ${err.response?.data?.detail || err.message}`);
+    }
+  };
+  
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    // No longer calling fetchPrompts() here as it will be triggered by the useEffect
+  };
 
   const renderSidebar = () => (
     <div className="admin-sidebar">
@@ -94,7 +235,12 @@ export default function Admin() {
         >
           Manage Models
         </li>
-        {/* Additional admin options can be added here */}
+        <li 
+          className={activeView === "prompts" ? "active" : ""}
+          onClick={() => setActiveView("prompts")}
+        >
+          Manage Prompts
+        </li>
       </ul>
     </div>
   );
@@ -166,6 +312,143 @@ export default function Admin() {
       </div>
     </div>
   );
+  
+  const renderPromptsView = () => (
+    <div className="admin-content">
+      <h2>Manage Prompts</h2>
+      
+      <div className="prompts-actions">
+        <button 
+          className="btn-primary"
+          onClick={handleCreatePrompt}
+        >
+          Create New Prompt
+        </button>
+        
+        <div className="category-filter">
+          <label htmlFor="category-filter">Filter by Category:</label>
+          <select 
+            id="category-filter"
+            value={selectedCategory}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+          >
+            <option value="All">All Categories</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
+      <div className="prompt-list">
+        {prompts.length > 0 ? (
+          <div className="prompt-cards">
+            {prompts.map((prompt) => (
+              <div key={prompt.id} className="prompt-card">
+                <div className="prompt-card-header">
+                  <h4>{prompt.name}</h4>
+                  <div className="prompt-card-actions">
+                    <button 
+                      className="btn-secondary btn-sm"
+                      onClick={() => handleEditPrompt(prompt)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="btn-danger btn-sm"
+                      onClick={() => handleDeletePrompt(prompt.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+                <div className="prompt-card-content">
+                  <div className="prompt-card-category">
+                    <strong>Category:</strong> {prompt.category}
+                  </div>
+                  <div className="prompt-card-text">
+                    <strong>Prompt:</strong>
+                    <pre>{prompt.prompt}</pre>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="no-prompts">No prompts found. Create a new prompt to get started.</p>
+        )}
+      </div>
+      
+      {/* Prompt Modal */}
+      {isPromptModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>{isEditing ? "Edit Prompt" : "Create New Prompt"}</h3>
+              <button className="close-button" onClick={() => setIsPromptModalOpen(false)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="prompt-name">Name *</label>
+                <input 
+                  type="text"
+                  id="prompt-name"
+                  value={promptName}
+                  onChange={(e) => setPromptName(e.target.value)}
+                  placeholder="Enter a name for this prompt"
+                  className="form-control"
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="prompt-category">Category *</label>
+                <select
+                  id="prompt-category"
+                  value={promptCategory}
+                  onChange={(e) => setPromptCategory(e.target.value)}
+                  className="form-control"
+                  required
+                >
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="prompt-text">Prompt *</label>
+                <textarea
+                  id="prompt-text"
+                  value={promptText}
+                  onChange={(e) => setPromptText(e.target.value)}
+                  className="prompt-textarea"
+                  placeholder="Enter the prompt text..."
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="modal-footer">
+              <button 
+                className="btn-secondary"
+                onClick={() => setIsPromptModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-primary"
+                onClick={handleSavePrompt}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   if (loading) {
     return <div className="admin-loading">Loading...</div>;
@@ -189,7 +472,15 @@ export default function Admin() {
         {renderSidebar()}
         
         <div className="main-content">
+          {error && (
+            <div className="error-message">
+              {error}
+              <button onClick={() => setError(null)}>✕</button>
+            </div>
+          )}
+          
           {activeView === "models" && renderModelsView()}
+          {activeView === "prompts" && renderPromptsView()}
         </div>
       </div>
     </div>
