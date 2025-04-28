@@ -37,6 +37,17 @@ export default function Admin() {
   const [downloadStatus, setDownloadStatus] = useState(null);
   const navigate = useNavigate();
   
+  // URL query parameters to handle views
+  const searchParams = new URLSearchParams(window.location.search);
+  const urlView = searchParams.get('view');
+  const urlTestId = searchParams.get('id');
+  
+  // Tests state
+  const [tests, setTests] = useState([]);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [testPrompts, setTestPrompts] = useState({});
+  const [viewingPrompt, setViewingPrompt] = useState(null);
+  
   // Prompts state
   const [prompts, setPrompts] = useState([]);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
@@ -71,6 +82,16 @@ export default function Admin() {
     checkAdminStatus();
   }, [navigate]);
 
+  // Set initial view from URL if present
+  useEffect(() => {
+    if (urlView && !loading) {
+      setActiveView(urlView);
+      if (urlView === "tests" && urlTestId) {
+        fetchTestDetails(urlTestId);
+      }
+    }
+  }, [urlView, urlTestId, loading]);
+
   useEffect(() => {
     if (!loading) {
       if (activeView === "models") {
@@ -78,9 +99,72 @@ export default function Admin() {
       } else if (activeView === "prompts") {
         fetchPrompts();
         fetchCategories();
+      } else if (activeView === "tests") {
+        fetchTests();
       }
     }
   }, [activeView, loading, selectedCategory]);
+
+  const fetchTests = async () => {
+    try {
+      const response = await axios.get("/api/tests/");
+      setTests(response.data);
+    } catch (err) {
+      console.error("Failed to fetch tests", err);
+      setError("Failed to fetch tests");
+    }
+  };
+  
+  const fetchTestDetails = async (testId) => {
+    try {
+      const response = await axios.get(`/api/tests/${testId}`);
+      setSelectedTest(response.data);
+      
+      // Fetch prompt details for this test
+      if (response.data.prompt_ids && response.data.prompt_ids.length > 0) {
+        const promptsData = {};
+        
+        for (const promptId of response.data.prompt_ids) {
+          try {
+            const promptResponse = await axios.get(`/api/prompts/${promptId}`);
+            promptsData[promptId] = promptResponse.data;
+          } catch (promptErr) {
+            console.error(`Failed to fetch prompt details for ID ${promptId}`, promptErr);
+          }
+        }
+        
+        setTestPrompts(promptsData);
+      }
+    } catch (err) {
+      console.error(`Failed to fetch test details for ID ${testId}`, err);
+      setError(`Failed to fetch test details: ${err.response?.data?.detail || err.message}`);
+    }
+  };
+  
+  const handleShowPrompt = (promptId) => {
+    setViewingPrompt(testPrompts[promptId]);
+  };
+  
+  const handleClosePromptModal = () => {
+    setViewingPrompt(null);
+  };
+
+  const handleDeleteTest = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this test?")) return;
+    
+    try {
+      await axios.delete(`/api/tests/${id}`);
+      // Refresh tests list
+      fetchTests();
+      // Clear selected test if it was deleted
+      if (selectedTest && selectedTest.id === id) {
+        setSelectedTest(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete test", err);
+      setError(`Failed to delete test: ${err.response?.data?.detail || err.message}`);
+    }
+  };
 
   const fetchModels = async () => {
     try {
@@ -241,6 +325,15 @@ export default function Admin() {
         >
           Manage Prompts
         </li>
+        <li 
+          className={activeView === "tests" ? "active" : ""}
+          onClick={() => setActiveView("tests")}
+        >
+          Test Results
+        </li>
+        <li>
+          <Link to="/testing-wizard">Testing Wizard</Link>
+        </li>
       </ul>
     </div>
   );
@@ -313,6 +406,174 @@ export default function Admin() {
     </div>
   );
   
+  const renderTestsView = () => {
+    // If a test is selected, show its details
+    if (selectedTest) {
+      return (
+        <div className="admin-content">
+          <div className="test-header">
+            <h2>Test Details: {selectedTest.name}</h2>
+            <button 
+              className="btn-secondary"
+              onClick={() => setSelectedTest(null)}
+            >
+              Back to Tests
+            </button>
+          </div>
+          
+          {selectedTest.description && (
+            <p className="test-description">{selectedTest.description}</p>
+          )}
+          
+          <div className="test-info">
+            <p><strong>Status:</strong> <span className={`status-badge ${selectedTest.status}`}>{selectedTest.status}</span></p>
+            <p><strong>Created:</strong> {new Date(selectedTest.created_at).toLocaleString()}</p>
+            
+            <div className="test-models-info">
+              <h3>Models Used</h3>
+              <ul>
+                {selectedTest.model_names.map((modelName) => (
+                  <li key={modelName}>{modelName}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="test-prompts-info">
+              <h3>Prompts Used</h3>
+              <ul>
+                {selectedTest.prompt_ids.map((promptId) => (
+                  <li key={promptId} onClick={() => handleShowPrompt(promptId)} className="clickable-prompt">
+                    {testPrompts[promptId]?.name || `Prompt ID: ${promptId}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          
+          {selectedTest.summaries && selectedTest.summaries.length > 0 ? (
+            <div className="test-results-section">
+              <h3>Test Results</h3>
+              <div className="test-summaries">
+                {selectedTest.summaries.map((summary) => (
+                  <div key={`${summary.model_name}-${summary.prompt_id}`} className="summary-card">
+                    <h4>{summary.model_name}</h4>
+                    <p><strong>Average Accuracy:</strong> {(summary.average_accuracy * 100).toFixed(2)}%</p>
+                    <p><strong>Average Response Time:</strong> {summary.average_response_time.toFixed(2)}s</p>
+                    <p><strong>Questions Evaluated:</strong> {summary.total_questions}</p>
+                    <p>
+                      <strong>Prompt:</strong>{" "}
+                      <span 
+                        className="clickable-prompt"
+                        onClick={() => handleShowPrompt(summary.prompt_id)}
+                      >
+                        {testPrompts[summary.prompt_id]?.name || `Prompt ID: ${summary.prompt_id}`}
+                      </span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+              
+              <h3>Detailed Results</h3>
+              <div className="test-details-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Model</th>
+                      <th>Prompt</th>
+                      <th>Question</th>
+                      <th>Model Grade</th>
+                      <th>Extracted Grade</th>
+                      <th>Accuracy</th>
+                      <th>Response Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedTest.results.map((result) => (
+                      <tr key={result.id}>
+                        <td>{result.model_name}</td>
+                        <td>
+                          <span 
+                            className="clickable-prompt"
+                            onClick={() => handleShowPrompt(result.prompt_id)}
+                          >
+                            {testPrompts[result.prompt_id]?.name || `Prompt ID: ${result.prompt_id}`}
+                          </span>
+                        </td>
+                        <td className="question-cell">{result.question}</td>
+                        <td>{result.model_grade.toFixed(2)}</td>
+                        <td>{result.extracted_grade.toFixed(2)}</td>
+                        <td>{(result.accuracy * 100).toFixed(2)}%</td>
+                        <td>{result.response_time.toFixed(2)}s</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="no-results">
+              {selectedTest.status === "pending" ? (
+                <p>This test is pending. Upload test questions to start processing.</p>
+              ) : selectedTest.status === "running" ? (
+                <p>Test is currently running. Results will appear here when complete.</p>
+              ) : (
+                <p>No results available for this test.</p>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // Otherwise, show the list of tests
+    return (
+      <div className="admin-content">
+        <div className="tests-header">
+          <h2>Test Results</h2>
+          <Link to="/testing-wizard" className="btn-primary">
+            Create New Test
+          </Link>
+        </div>
+        
+        {tests.length > 0 ? (
+          <div className="tests-list">
+            {tests.map((test) => (
+              <div key={test.id} className="test-card">
+                <div className="test-card-header">
+                  <h4>{test.name}</h4>
+                  <div className="test-card-actions">
+                    <button 
+                      className="btn-primary btn-sm"
+                      onClick={() => fetchTestDetails(test.id)}
+                    >
+                      View
+                    </button>
+                    <button 
+                      className="btn-danger btn-sm"
+                      onClick={() => handleDeleteTest(test.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+                <div className="test-card-content">
+                  {test.description && (
+                    <p>{test.description}</p>
+                  )}
+                  <p><strong>Status:</strong> <span className={`status-badge ${test.status}`}>{test.status}</span></p>
+                  <p><strong>Models:</strong> {test.model_names.join(", ")}</p>
+                  <p><strong>Created:</strong> {new Date(test.created_at).toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="no-tests">No tests found. Use the Testing Wizard to create a new test.</p>
+        )}
+      </div>
+    );
+  };
+
   const renderPromptsView = () => (
     <div className="admin-content">
       <h2>Manage Prompts</h2>
@@ -366,12 +627,12 @@ export default function Admin() {
                   <div className="prompt-card-category">
                     <strong>Category:</strong> {prompt.category}
                   </div>
-                  <div className="prompt-card-text">
-                    <strong>Prompt:</strong>
-                    <pre>{prompt.prompt}</pre>
-                  </div>
-                </div>
-              </div>
+          <div className="prompt-card-text">
+            <strong>Prompt:</strong>
+            <pre>{prompt.prompt}</pre>
+          </div>
+        </div>
+      </div>
             ))}
           </div>
         ) : (
@@ -456,6 +717,26 @@ export default function Admin() {
 
   return (
     <div className="admin-container">
+      {/* Prompt Viewing Modal - shown when clicking on a prompt name */}
+      {viewingPrompt && (
+        <div className="modal">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Prompt: {viewingPrompt.name}</h3>
+              <button className="close-button" onClick={handleClosePromptModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label><strong>Category:</strong> {viewingPrompt.category}</label>
+              </div>
+              <div className="form-group">
+                <label><strong>Prompt Text:</strong></label>
+                <pre className="prompt-preview">{viewingPrompt.prompt}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="taskbar">
         <div className="taskbar-left">
           <Link to="/home">🏠 Home</Link>
@@ -481,6 +762,7 @@ export default function Admin() {
           
           {activeView === "models" && renderModelsView()}
           {activeView === "prompts" && renderPromptsView()}
+          {activeView === "tests" && renderTestsView()}
         </div>
       </div>
     </div>

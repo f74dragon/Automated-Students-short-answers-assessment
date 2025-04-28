@@ -1,0 +1,453 @@
+/* TestingWizard.css */
+.testing-wizard-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.testing-wizard-body {
+  display: flex;
+  flex: 1;
+  background-color: #f8f9fa;
+}
+
+.taskbar {
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #343a40;
+  padding: 0 20px;
+  color: white;
+}
+
+.taskbar-left {
+  display: flex;
+  gap: 20px;
+}
+
+.taskbar-left a {
+  color: white;
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.taskbar-left a:hover {
+  background-color: #495057;
+}
+
+.user-icon {
+  padding: 5px 10px;
+  border-radius: 50%;
+  background-color: #495057;
+  cursor: pointer;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #343a40;
+  color: white;
+  padding: 20px 0;
+}
+
+.sidebar-header {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid #495057;
+}
+
+.sidebar-menu {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu li {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.sidebar-menu li:hover, .sidebar-menu li.active {
+  background-color: #495057;
+}
+
+.sidebar-menu li a {
+  color: white;
+  text-decoration: none;
+  display: block;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px 15px;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-message button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #721c24;
+}
+
+/* Steps Indicator */
+
+.steps-indicator {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120px;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.step.active .step-number {
+  background-color: #007bff;
+  color: white;
+}
+
+.step-text {
+  font-size: 14px;
+  text-align: center;
+}
+
+.step-connector {
+  flex: 1;
+  height: 2px;
+  background-color: #e9ecef;
+}
+
+.step.active + .step-connector {
+  background-color: #007bff;
+}
+
+/* Content Body */
+
+.content-body {
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.step-content {
+  min-height: 400px;
+}
+
+.step-content h3 {
+  margin-bottom: 20px;
+  color: #343a40;
+}
+
+/* Step Actions */
+
+.step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0069d9;
+}
+
+.btn-primary:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Model Selection Grid */
+
+.model-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.model-card {
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  padding: 15px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.model-card:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.model-card.selected {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.model-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.model-select-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.model-card-content p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* Prompt Selection Grid */
+
+.category-filter {
+  margin-bottom: 20px;
+}
+
+.category-filter select {
+  margin-left: 10px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid #ced4da;
+}
+
+.prompt-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.prompt-card {
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  padding: 15px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.prompt-card:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.prompt-card.selected {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.prompt-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.prompt-select-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.prompt-card-content {
+  margin-top: 10px;
+}
+
+.prompt-card-category {
+  margin-bottom: 10px;
+}
+
+.prompt-card-text {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.prompt-card pre {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+/* CSV Upload */
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ced4da;
+  font-size: 16px;
+}
+
+.csv-upload-section {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+.file-input-container {
+  margin-top: 15px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.file-input-label:hover {
+  background-color: #0069d9;
+}
+
+.file-name {
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.csv-preview {
+  margin-top: 20px;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.csv-preview h4 {
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  margin: 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.csv-preview-content {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.csv-preview-header {
+  padding: 10px 15px;
+  font-weight: bold;
+  background-color: #e9ecef;
+}
+
+.csv-preview-row {
+  padding: 10px 15px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.csv-preview-row:last-child {
+  border-bottom: none;
+}
+
+/* Test Summary */
+
+.test-summary {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.test-summary h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.test-models, .test-prompts, .test-csv {
+  margin-top: 15px;
+}
+
+.test-models h5, .test-prompts h5, .test-csv h5 {
+  margin-bottom: 10px;
+}
+
+.test-models ul, .test-prompts ul {
+  padding-left: 20px;
+}
+
+.test-instruction {
+  margin-top: 20px;
+  font-weight: bold;
+}
