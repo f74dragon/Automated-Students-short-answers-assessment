@@ -44,12 +44,12 @@
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: #3498db;
+  background-color: #CA4F00;
   transition: width 0.3s ease;
 }
 
 .taskbar-left a:hover {
-  color: #3498db;
+  color: #CA4F00;
 }
 
 .taskbar-left a:hover::after {
@@ -95,7 +95,7 @@
   position: absolute;
   width: 28px;
   height: 28px;
-  background-color: #CA4F00;
+  background-color: #fff;
   border-radius: 50%;
   bottom: -14px;
 }
@@ -168,7 +168,7 @@
 }
 
 .sidebar-menu li.active {
-  background-color: #3498db;
+  background-color: #CA4F00;
   font-weight: bold;
 }
 
@@ -219,7 +219,7 @@
 }
 
 .step.active .step-number {
-  background-color: #3498db;
+  background-color: #CA4F00;
   color: white;
 }
 
@@ -265,7 +265,7 @@
   background-color: #f9f9f9;
   padding: 15px;
   border-radius: 4px;
-  border-left: 4px solid #3498db;
+  border-left: 4px solid #CA4F00;
 }
 
 .prompt-help code {
@@ -335,12 +335,15 @@
 }
 
 .btn-primary {
-  background-color: #3498db;
-  color: white;
+  background-color: #F7EA48;
+  color: #861F41;
 }
 
 .btn-primary:hover {
-  background-color: #2980b9;
+  background-color: #CA4F00;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary {

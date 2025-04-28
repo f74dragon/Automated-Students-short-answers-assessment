@@ -48,12 +48,12 @@
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: #3498db;
+  background-color: #CA4F00;
   transition: width 0.3s ease;
 }
 
 .taskbar-left a:hover {
-  color: #3498db;
+  color: #CA4F00;
 }
 
 .taskbar-left a:hover::after {
@@ -99,7 +99,7 @@
   position: absolute;
   width: 28px;
   height: 28px;
-  background-color: #CA4F00;
+  background-color: #fff;
   border-radius: 50%;
   bottom: -14px;
 }
@@ -216,7 +216,7 @@
 }
 
 .step.active .step-number {
-  background-color: #3498db;
+  background-color: #CA4F00;
   color: white;
 }
 
@@ -232,7 +232,7 @@
 }
 
 .step.active + .step-connector {
-  background-color: #3498db;
+  background-color: #CA4F00;
 }
 
 /* Content Body */
@@ -271,12 +271,13 @@
 }
 
 .btn-primary {
-  background-color: #3498db;
-  color: white;
+  background-color: #F7EA48;
+  color: #861F41;
 }
 
 .btn-primary:hover {
-  background-color: #2980b9;
+  background-color: #CA4F00;
+  color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

@@ -44,12 +44,12 @@
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: #3498db;
+  background-color: #CA4F00;
   transition: width 0.3s ease;
 }
 
 .taskbar-left a:hover {
-  color: #3498db;
+  color: #CA4F00;
 }
 
 .taskbar-left a:hover::after {
@@ -95,7 +95,7 @@
   position: absolute;
   width: 28px;
   height: 28px;
-  background-color: #CA4F00;
+  background-color: #fff;
   border-radius: 50%;
   bottom: -14px;
 }
@@ -168,7 +168,7 @@
 }
 
 .sidebar-menu li.active {
-  background-color: #3498db;
+  background-color: #CA4F00;
   font-weight: bold;
 }
 

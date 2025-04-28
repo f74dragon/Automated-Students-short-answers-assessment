@@ -18,7 +18,6 @@
     align-items: center;
     background: #1a1a1a;
     padding: 15px 30px;
-    border-radius: 10px;
     font-size: 16px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
@@ -119,7 +118,7 @@
     position: absolute;
     width: 28px;
     height: 28px;
-    background-color: #CA4F00;
+    background-color: #fff;
     border-radius: 50%;
     bottom: -14px;
   }
