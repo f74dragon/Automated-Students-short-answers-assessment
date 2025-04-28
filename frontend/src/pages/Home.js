@@ -13,6 +13,7 @@ export default function Home() {
   const [selectedCombination, setSelectedCombination] = useState(null);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +24,9 @@ export default function Home() {
       try {
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
         const username = decodedToken.sub;
+        
+        // Check if user is admin from token
+        setIsAdmin(decodedToken.is_admin || false);
 
         const userRes = await axios.get(`/api/users/`);
         const user = userRes.data.users.find(u => u.username === username);
@@ -96,6 +100,7 @@ export default function Home() {
           <Link to="/home">🏠 Home</Link>
           <Link to="/collections">📚 Collections</Link>
           <Link to="/pairs">🔗 Pairs</Link>
+          {isAdmin && <Link to="/admin">👑 Admin</Link>}
         </div>
         <div className="taskbar-right">
           <button className="create-collection-btn" onClick={() => setShowModal(true)}>

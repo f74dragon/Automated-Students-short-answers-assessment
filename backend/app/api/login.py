@@ -28,5 +28,9 @@ def login(user: UserCreate, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    access_token = create_access_token(data={"sub": db_user.username}, expires_delta=timedelta(minutes=30))
+    access_token = create_access_token(
+        data={"sub": db_user.username}, 
+        expires_delta=timedelta(minutes=30),
+        is_admin=db_user.isAdmin
+    )
     return {"access_token": access_token, "token_type": "bearer"}

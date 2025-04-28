@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import CollectionDetails from "./pages/CollectionDetails";
 import Pairs from "./pages/Pairs";
+import Admin from "./pages/Admin";
 
 // Global Axios Configuration
 axios.defaults.baseURL = window.location.origin;
@@ -29,6 +30,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/collection/:id" element={<CollectionDetails />} />
         <Route path="/pairs" element={<Pairs />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   );

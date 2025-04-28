@@ -53,23 +53,30 @@ class OllamaService:
             self.logger.error(f"Error checking model existence: {e}")
             return False
 
-    async def download_model(self) -> bool:
+    async def download_model(self, model_name: str = None) -> bool:
         """Download the model if it doesn't exist."""
+        target_model = model_name or self.model_name
+        
         try:
-            if await self.check_model_exists():
-                self.logger.info(f"Model {self.model_name} already exists")
+            if await self.check_model_exists(target_model):
+                self.logger.info(f"Model {target_model} already exists")
                 return True
 
-            self.logger.info(f"Downloading model {self.model_name}...")
+            self.logger.info(f"Downloading model {target_model}...")
             response = await self._make_request_with_retry(
                 "POST",
                 "api/pull",
-                json={"name": self.model_name}
+                json={"model": target_model, "stream": False}  # Using non-streaming version
             )
             
             if response.status_code == 200:
-                self.logger.info(f"Successfully downloaded model {self.model_name}")
-                return True
+                result = response.json()
+                if result.get("status") == "success":
+                    self.logger.info(f"Successfully downloaded model {target_model}")
+                    return True
+                else:
+                    self.logger.error(f"Failed to download model: {result.get('status')}")
+                    return False
             else:
                 self.logger.error(f"Failed to download model: {response.text}")
                 return False

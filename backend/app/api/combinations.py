@@ -11,7 +11,7 @@ from app.schemas.evaluation_schema import (
     CombinationWithCollections,
     ModelList
 )
-from app.auth.auth import get_current_active_user
+from app.auth.auth import get_current_active_user, get_admin_user
 from app.services.ollama_service import OllamaService
 
 router = APIRouter(prefix="/combinations", tags=["combinations"])
@@ -170,3 +170,35 @@ async def delete_combination(
     db.delete(db_combination)
     db.commit()
     return None
+
+@router.post("/pull", status_code=status.HTTP_200_OK)
+async def pull_model(
+    model_request: dict,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_admin_user)  # Ensure only admins can pull models
+):
+    """Pull a new model from Ollama."""
+    model_name = model_request.get("model_name")
+    if not model_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Model name is required"
+        )
+    
+    try:
+        service = OllamaService()
+        success = await service.download_model(model_name)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to download model '{model_name}'"
+            )
+        
+        return {"status": "success", "message": f"Model '{model_name}' pulled successfully"}
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error pulling model: {str(e)}"
+        )

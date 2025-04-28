@@ -7,6 +7,7 @@ class UserCreate(BaseModel):
 
 class UserResponse(UserCreate):
     id: int
+    isAdmin: bool = False
 
     class Config:
         from_attributes = True  # Needed for ORM integration

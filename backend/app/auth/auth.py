@@ -25,11 +25,11 @@ def verify_password(plain_password: str, hashed_password: str):
     """Verify the password against its hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
+def create_access_token(data: dict, expires_delta: timedelta = None, is_admin: bool = False):
     """Generate JWT token for authentication."""
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "is_admin": is_admin})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def authenticate_user(db: Session, username: str, password: str):
@@ -64,4 +64,12 @@ async def get_current_active_user(current_user = Depends(get_current_user)):
     # Add additional checks here if needed, such as is_active flag
     return current_user
 
-# Admin function removed as requested - all users have same privileges
+# Function to check if user is an admin
+async def get_admin_user(current_user = Depends(get_current_user)):
+    """Check if user is an admin and return the user."""
+    if not current_user.isAdmin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized: Admin privileges required"
+        )
+    return current_user

@@ -20,7 +20,9 @@ User Database Functions
 def create_user(db: Session, user: UserCreate) -> User:
     """Create a new user with a hashed password."""
     hashed_password = get_password_hash(user.password)  # Hash password before saving
-    db_user = User(username=user.username, password=hashed_password)  # Store hashed password
+    # Check if username is "dev" and set isAdmin accordingly
+    is_admin = user.username == "dev"
+    db_user = User(username=user.username, password=hashed_password, isAdmin=is_admin)  # Store hashed password
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -28,13 +30,13 @@ def create_user(db: Session, user: UserCreate) -> User:
 
 def get_users(db: Session) -> UserListResponse:
     users = db.query(User).all()
-    return UserListResponse(users=[UserResponse(id=user.id, username=user.username, password=user.password) for user in users])
+    return UserListResponse(users=[UserResponse(id=user.id, username=user.username, password=user.password, isAdmin=user.isAdmin) for user in users])
 
 def get_user(db: Session, user_id: int) -> UserResponse:
     user = db.query(User).where(User.id == user_id).first()
     if not user:
         raise ValueError(f"User {user_id} not found") 
-    return UserResponse(id=user.id, username=user.username, password=user.password)
+    return UserResponse(id=user.id, username=user.username, password=user.password, isAdmin=user.isAdmin)
 
 def delete_user(db: Session, user_id: int) -> UserDeleteResponse:
     user = db.query(User).filter(User.id == user_id).first()
