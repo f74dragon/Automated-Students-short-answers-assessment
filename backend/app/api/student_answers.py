@@ -7,6 +7,8 @@ from app.database import crud
 from app.schemas.student_answer_schema import StudentAnswerCreate, StudentAnswerResponse, StudentAnswerListResponse, StudentAnswerDeleteResponse
 from app.schemas.llm_response_schema import LLMResponseResponse, LLMResponseCreate
 from app.services.ollama_service import OllamaService
+from app.models.collection import Collection
+from app.models.combination import Combination
 
 router = APIRouter(prefix="/student-answers", tags=["student_answers"])
 
@@ -67,22 +69,41 @@ async def grade_student_answer(student_answer_id: int, db: Session = Depends(get
         # Get student answer
         student_answer = crud.get_student_answer(db=db, student_answer_id=student_answer_id)
         
-        # Get question and student
+        # Get question and its associated collection
         question = crud.get_question(db=db, question_id=student_answer.question_id)
+        collection = db.query(Collection).filter(Collection.id == question.collection_id).first()
         
-        # Initialize Ollama service
-        ollama_service = OllamaService()
+        # Initialize variables for model and prompt
+        model_name = None
+        custom_prompt = None
+        
+        # Check if collection has an associated combination
+        if collection and collection.combination_id:
+            combination = db.query(Combination).filter(Combination.id == collection.combination_id).first()
+            if combination:
+                model_name = combination.model_name
+                custom_prompt = combination.prompt
+        
+        # Initialize Ollama service with custom model (if available)
+        ollama_service = OllamaService(model_name=model_name) if model_name else OllamaService()
         
         # Ensure model is downloaded
         if not await ollama_service.check_model_exists():
             await ollama_service.download_model()
         
-        # Create prompt
-        prompt = ollama_service.create_grading_prompt(
-            question=question.text,
-            model_answer=question.model_answer,
-            student_answer=student_answer.answer
-        )
+        # Create prompt - either use custom prompt or fall back to default
+        if custom_prompt:
+            # Replace placeholders in custom prompt with actual values
+            prompt = custom_prompt.replace("{{question}}", question.text)
+            prompt = prompt.replace("{{model_answer}}", question.model_answer)
+            prompt = prompt.replace("{{student_answer}}", student_answer.answer)
+        else:
+            # Use the default prompt format
+            prompt = ollama_service.create_grading_prompt(
+                question=question.text,
+                model_answer=question.model_answer,
+                student_answer=student_answer.answer
+            )
         
         # Generate response
         response_text = await ollama_service.generate_response(prompt)

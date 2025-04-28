@@ -6,9 +6,9 @@ import re
 from typing import Dict, Optional, Tuple
 
 class OllamaService:
-    def __init__(self, base_url: str = None, max_retries: int = 5, initial_retry_delay: float = 1.0):
+    def __init__(self, base_url: str = None, max_retries: int = 5, initial_retry_delay: float = 1.0, model_name: str = None):
         self.base_url = base_url or os.environ.get("OLLAMA_URL", "http://localhost:11434")
-        self.model_name = "gemma3:4b"
+        self.model_name = model_name or "gemma3:4b"
         self.logger = logging.getLogger(__name__)
         self.max_retries = max_retries
         self.initial_retry_delay = initial_retry_delay
