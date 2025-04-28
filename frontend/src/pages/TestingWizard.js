@@ -18,7 +18,23 @@ export default function TestingWizard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [testId, setTestId] = useState(null);
+  const [username, setUsername] = useState("");
   const navigate = useNavigate();
+
+  // Get the username on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        setUsername(decodedToken.sub);
+      } catch (err) {
+        console.error("Failed to decode token", err);
+      }
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
 
   // Fetch data based on current step
   useEffect(() => {
@@ -436,13 +452,15 @@ export default function TestingWizard() {
     <div className="testing-wizard-container">
       <div className="taskbar">
         <div className="taskbar-left">
-          <Link to="/home">🏠 Home</Link>
-          <Link to="/collections">📚 Collections</Link>
-          <Link to="/pairs">🔗 Pairs</Link>
-          <Link to="/admin">👑 Admin</Link>
+          <Link to="/home">Home</Link>
+          <Link to="/pairs">Pairs</Link>
+          <Link to="/admin">Admin</Link>
         </div>
         <div className="taskbar-right">
-          <span className="user-icon">👤</span>
+          <div className="user-profile">
+            <span className="user-icon"></span>
+            <div className="username-tooltip">{username}</div>
+          </div>
         </div>
       </div>
 

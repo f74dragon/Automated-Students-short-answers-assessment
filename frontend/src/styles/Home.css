@@ -10,49 +10,68 @@
     padding: 20px;
   }
   
-  /* Taskbar Styling */
-  .taskbar {
+/* Taskbar Styling */
+.taskbar {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(0, 0, 0, 0.3);
+    background: #1a1a1a;
     padding: 15px 30px;
     border-radius: 10px;
-    font-size: 18px;
+    font-size: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
   /* Left Side - Shortcuts */
   .taskbar-left {
     display: flex;
-    gap: 20px;
+    gap: 30px;
   }
   
   .taskbar-left a {
     color: white;
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 500;
+    position: relative;
+    padding: 8px 0;
+    letter-spacing: 0.5px;
     transition: 0.3s;
   }
   
+  .taskbar-left a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: #3498db;
+    transition: width 0.3s ease;
+  }
+  
   .taskbar-left a:hover {
-    color: #F7EA48;
+    color: #3498db;
+  }
+  
+  .taskbar-left a:hover::after {
+    width: 100%;
   }
   
   /* Right Side - User Profile & Create Collection */
   .taskbar-right {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
   }
   
   .create-collection-btn {
     background: #F7EA48;
     color: #861F41;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
     transition: 0.3s ease-in-out;
     border: none;
@@ -61,6 +80,73 @@
   .create-collection-btn:hover {
     background: #CA4F00;
     color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* User Profile with Hover Tooltip */
+  .user-profile {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .user-icon {
+    width: 36px;
+    height: 36px;
+    background-color: #CA4F00;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .user-icon::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border-radius: 50%;
+    top: 6px;
+  }
+  
+  .user-icon::after {
+    content: '';
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background-color: #CA4F00;
+    border-radius: 50%;
+    bottom: -14px;
+  }
+  
+  .username-tooltip {
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background-color: white;
+    color: #2c3e50;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px);
+    transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+    z-index: 10;
+  }
+  
+  .user-profile:hover .username-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
   
   /* Ceramic Content Box (70% of Screen Height) */
@@ -94,7 +180,7 @@
     padding-top: 20px;
   }
   
-  /* Empty Collections State */
+/* Empty Collections State */
   .empty-collections {
     display: flex;
     flex-direction: column;
@@ -105,7 +191,7 @@
   }
   
   .empty-collections h2 {
-    color: #861F41;
+    color: #2c3e50;
     font-size: 28px;
     margin-bottom: 15px;
   }
@@ -121,6 +207,8 @@
     padding: 12px 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     animation: pulse 2s infinite;
+    background: #F7EA48;
+    color: #861F41;
   }
   
   @keyframes pulse {
@@ -144,7 +232,7 @@
     scroll-snap-type: x mandatory;
     white-space: nowrap;
     scrollbar-width: thin;
-    scrollbar-color: #CA4F00 transparent;
+    scrollbar-color: #3498db transparent;
   }
   
   /* Individual Collection Items */
@@ -207,7 +295,7 @@
   .form-group label {
     font-weight: bold;
     margin-bottom: 8px;
-    color: #861F41;
+    color: #2c3e50;
   }
   
   .modal-form input, 
@@ -225,8 +313,8 @@
   .modal-form input:focus, 
   .modal-form textarea:focus,
   .modal-form select:focus {
-    border-color: #E5751F;
-    box-shadow: 0 0 5px rgba(229, 117, 31, 0.5);
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
     outline: none;
     background-color: white;
   }
@@ -260,7 +348,7 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    background: #CA4F00;
+    background: #3498db;
     color: white;
     padding: 10px 15px;
     border: none;
@@ -270,13 +358,13 @@
   }
   
   .close-btn:hover {
-    background: #861F41;
+    background: #2980b9;
   }
   
   /* Exit Button */
   .exit-btn {
     margin-top: 20px;
-    background: #E5751F;
+    background: #3498db;
     color: white;
     padding: 12px 24px;
     border: none;
@@ -289,7 +377,7 @@
   }
   
   .exit-btn:hover {
-    background: #CA4F00;
+    background: #2980b9;
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
   }

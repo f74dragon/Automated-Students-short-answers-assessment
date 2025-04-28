@@ -24,7 +24,23 @@ export default function Pairs() {
   const [combinations, setCombinations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [username, setUsername] = useState("");
   const navigate = useNavigate();
+
+  // Get the username on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        setUsername(decodedToken.sub);
+      } catch (err) {
+        console.error("Failed to decode token", err);
+      }
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
 
   // Fetch combinations and models on component mount
   useEffect(() => {
@@ -353,12 +369,14 @@ export default function Pairs() {
     <div className="pairs-container">
       <div className="taskbar">
         <div className="taskbar-left">
-          <Link to="/home">🏠 Home</Link>
-          <Link to="/collections">📚 Collections</Link>
-          <Link to="/pairs">🔗 Pairs</Link>
+          <Link to="/home">Home</Link>
+          <Link to="/pairs">Pairs</Link>
         </div>
         <div className="taskbar-right">
-          <span className="user-icon">👤 User</span>
+          <div className="user-profile">
+            <span className="user-icon"></span>
+            <div className="username-tooltip">{username}</div>
+          </div>
         </div>
       </div>
 

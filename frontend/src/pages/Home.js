@@ -14,6 +14,7 @@ export default function Home() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [username, setUsername] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,13 +24,16 @@ export default function Home() {
     const fetchUserAndCollections = async () => {
       try {
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
-        const username = decodedToken.sub;
+        const currentUsername = decodedToken.sub;
+        
+        // Save username for display in navbar
+        setUsername(currentUsername);
         
         // Check if user is admin from token
         setIsAdmin(decodedToken.is_admin || false);
 
         const userRes = await axios.get(`/api/users/`);
-        const user = userRes.data.users.find(u => u.username === username);
+        const user = userRes.data.users.find(u => u.username === currentUsername);
         if (!user) throw new Error("User not found");
 
         setUserId(user.id);
@@ -97,16 +101,18 @@ export default function Home() {
     <div className="home-container">
       <div className="taskbar">
         <div className="taskbar-left">
-          <Link to="/home">🏠 Home</Link>
-          <Link to="/collections">📚 Collections</Link>
-          <Link to="/pairs">🔗 Pairs</Link>
-          {isAdmin && <Link to="/admin">👑 Admin</Link>}
+          <Link to="/home">Home</Link>
+          <Link to="/pairs">Pairs</Link>
+          {isAdmin && <Link to="/admin">Admin</Link>}
         </div>
         <div className="taskbar-right">
           <button className="create-collection-btn" onClick={() => setShowModal(true)}>
-            ➕ Create Collection
+            Create Collection
           </button>
-          <span className="user-icon">👤</span>
+          <div className="user-profile">
+            <span className="user-icon"></span>
+            <div className="username-tooltip">{username}</div>
+          </div>
         </div>
       </div>
 

@@ -35,6 +35,7 @@ export default function Admin() {
   const [modelName, setModelName] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState(null);
+  const [username, setUsername] = useState("");
   const navigate = useNavigate();
   
   // URL query parameters to handle views
@@ -72,6 +73,7 @@ export default function Admin() {
           // If not admin, redirect to home
           navigate("/home");
         }
+        setUsername(decodedToken.sub);
         setLoading(false);
       } catch (err) {
         console.error("Failed to check admin status", err);
@@ -807,13 +809,15 @@ export default function Admin() {
       )}
       <div className="taskbar">
         <div className="taskbar-left">
-          <Link to="/home">🏠 Home</Link>
-          <Link to="/collections">📚 Collections</Link>
-          <Link to="/pairs">🔗 Pairs</Link>
-          <Link to="/admin">👑 Admin</Link>
+          <Link to="/home">Home</Link>
+          <Link to="/pairs">Pairs</Link>
+          <Link to="/admin">Admin</Link>
         </div>
         <div className="taskbar-right">
-          <span className="user-icon">👤</span>
+          <div className="user-profile">
+            <span className="user-icon"></span>
+            <div className="username-tooltip">{username}</div>
+          </div>
         </div>
       </div>
 
