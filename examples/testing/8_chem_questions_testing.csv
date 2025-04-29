@@ -1,0 +1,9 @@
+Question,Model Answer,Student Answer,Model Grade
+"A solution has a pH of 8.33. Calculate","H_(3)O^(+) = 4.68*10^(-9)","H_(3)O^(+) = 4.68*10^(-9)",1.0
+"Give the formula of conjugate base of HSO_(4-)","SO_(4)^(2-)","SO_(4)",0.25
+"Give the formula of conjugate base of N_(2)H_(4)","N_(2)H_(5)^(+)","N_(2)H_(5)",0.25
+"How can the ln(A) versus time plot be used to determine the rate constant of a reaction?","The slope of the line determines the rate constant (k).","The y intercept determines the rate constant.",0.5
+"How many pi bonds are in a triple bond?","2 pi bonds","3 pi bonds",0.0
+"Is the molecule CaSO_(3) acidic, neutral, or basic?","Basic","Neutral",0.0
+"What can you expect to happen when a the pressure inside a container is decreased and the temperature increases?","The equilibrium will shift to the side with more moles of gas, and equilibrium goes towards to absorbtion of heat.","The equilibrium will shift to the side with less moles of gas, and equilibrium goes towards to absorbtion of heat.",0.5
+"If you add a strong acid to a solution of a weak base, what will happen to the pH?","The pH will decrease.","The pH will increase.",0.0
