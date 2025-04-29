@@ -35,6 +35,7 @@ export default function Admin() {
   const [modelName, setModelName] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState(null);
+  const [downloadProgress, setDownloadProgress] = useState(null);
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
   
@@ -272,28 +273,120 @@ export default function Admin() {
     try {
       setIsDownloading(true);
       setDownloadStatus(null);
+      setDownloadProgress(null);
       
-      const response = await axios.post("/api/combinations/pull", { 
-        model_name: modelName 
+      // Using fetch instead of axios for better streaming support
+      const response = await fetch("/api/combinations/pull", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({ model_name: modelName })
       });
-      
-      setDownloadStatus({ 
-        success: true, 
-        message: `Successfully pulled model: ${modelName}` 
-      });
-      
-      // Refresh the models list
-      fetchModels();
-      
-      // Clear the input field
-      setModelName("");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          console.log("Stream complete");
+          break;
+        }
+        
+        // Decode the chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+        
+        // Process complete lines
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep the last incomplete line in buffer
+        
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          
+          try {
+            const data = JSON.parse(line);
+            
+            // Enhanced debugging
+            console.log("Raw streaming data from Ollama:", data);
+            console.log("Data has properties:", 
+              "status:", data.status, 
+              "total:", data.total, 
+              "completed:", data.completed, 
+              "digest:", data.digest
+            );
+            
+            if (data.status === "error") {
+              setDownloadStatus({
+                success: false,
+                message: data.message || "An error occurred during download"
+              });
+              setIsDownloading(false);
+              return;
+            } else if (data.status === "success") {
+              setDownloadStatus({
+                success: true,
+                message: data.message || `Successfully pulled model: ${modelName}`
+              });
+              // Refresh the models list
+              fetchModels();
+              // Clear the input field
+              setModelName("");
+              setIsDownloading(false);
+              setDownloadProgress(null);
+              return;
+            } else {
+              // Create progress data for any message with download information
+              // Don't rely solely on "downloading" status
+              const hasProgressInfo = data.total !== undefined || data.completed !== undefined;
+              
+              if (data.status === "downloading" || hasProgressInfo) {
+                // Calculate MB for display
+                const completed = data.completed || 0;
+                const total = data.total || 0;
+                const completedMB = Math.round((completed / (1024 * 1024)) * 10) / 10;
+                const totalMB = Math.round((total / (1024 * 1024)) * 10) / 10;
+                
+                console.log(`Progress: ${completedMB}MB / ${totalMB}MB`);
+                
+                // Update progress for downloading status
+                setDownloadProgress({
+                  status: data.status || "downloading", // Default to "downloading" if no status
+                  digest: data.digest,
+                  total: total,
+                  completed: completed,
+                  message: `Downloading ${data.digest || ""} - ${completedMB} MB / ${totalMB} MB`
+                });
+              } else {
+                // For other status updates, store the status with enhanced details
+                console.log("Other status update:", data.status);
+                setDownloadProgress({
+                  status: data.status,
+                  message: data.status,
+                  details: JSON.stringify(data)
+                });
+              }
+            }
+          } catch (e) {
+            console.error("Failed to parse JSON:", e, line);
+          }
+        }
+      }
     } catch (error) {
+      console.error("Pull failed:", error);
       setDownloadStatus({ 
         success: false, 
-        message: `Failed to pull model: ${error.response?.data?.detail || error.message}`
+        message: `Failed to pull model: ${error.message}`
       });
-    } finally {
       setIsDownloading(false);
+      setDownloadProgress(null);
     }
   };
   
@@ -428,6 +521,41 @@ export default function Admin() {
             {isDownloading ? "Pulling..." : "Pull Model"}
           </button>
         </div>
+        
+        {/* Download Progress */}
+        {isDownloading && downloadProgress && (
+          <div className="download-progress">
+            <div className="progress-status">
+              <span className="status-label">Status:</span>
+              <span className="status-value">
+                {downloadProgress.message || downloadProgress.status || "Initializing..."}
+              </span>
+            </div>
+            
+            {/* Show progress bar if we have any download data */}
+            {downloadProgress.total > 0 && (
+              <>
+                <div className="progress-bar-container">
+                  <div 
+                    className="progress-bar" 
+                    style={{ 
+                      width: `${Math.min(100, (downloadProgress.completed / downloadProgress.total) * 100)}%` 
+                    }}
+                  ></div>
+                </div>
+                <div className="progress-details">
+                  <span>
+                    {Math.round((downloadProgress.completed / (1024 * 1024)) * 10) / 10} MB / 
+                    {Math.round((downloadProgress.total / (1024 * 1024)) * 10) / 10} MB
+                  </span>
+                  <span>
+                    {Math.round((downloadProgress.completed / downloadProgress.total) * 100)}%
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
         
         {downloadStatus && (
           <div className={`download-status ${downloadStatus.success ? 'success' : 'error'}`}>
@@ -697,12 +825,12 @@ export default function Admin() {
                   <div className="prompt-card-category">
                     <strong>Category:</strong> {prompt.category}
                   </div>
-          <div className="prompt-card-text">
-            <strong>Prompt:</strong>
-            <pre>{prompt.prompt}</pre>
-          </div>
-        </div>
-      </div>
+                  <div className="prompt-card-text">
+                    <strong>Prompt:</strong>
+                    <pre>{prompt.prompt}</pre>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         ) : (

@@ -1,4 +1,5 @@
 import httpx
+import json
 import logging
 import os
 import asyncio
@@ -63,26 +64,48 @@ class OllamaService:
                 return True
 
             self.logger.info(f"Downloading model {target_model}...")
-            response = await self._make_request_with_retry(
-                "POST",
-                "api/pull",
-                json={"model": target_model, "stream": False}  # Using non-streaming version
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                if result.get("status") == "success":
-                    self.logger.info(f"Successfully downloaded model {target_model}")
-                    return True
-                else:
-                    self.logger.error(f"Failed to download model: {result.get('status')}")
-                    return False
-            else:
-                self.logger.error(f"Failed to download model: {response.text}")
-                return False
+            return True  # Return True immediately as the actual download will be handled by stream_download_progress
         except Exception as e:
-            self.logger.error(f"Error downloading model: {e}")
+            self.logger.error(f"Error checking model existence: {e}")
             return False
+            
+    async def stream_download_progress(self, model_name: str = None):
+        """Stream the progress of a model download."""
+        target_model = model_name or self.model_name
+        
+        try:
+            async with httpx.AsyncClient(timeout=None) as client:  # Use no timeout for large downloads
+                async with client.stream(
+                    "POST",
+                    f"{self.base_url}/api/pull",
+                    json={"model": target_model, "stream": True},
+                    timeout=None
+                ) as response:
+                    if response.status_code != 200:
+                        yield {"error": f"Failed to start download: {response.text}"}
+                        return
+
+                    async for line in response.aiter_lines():
+                        if not line.strip():
+                            continue
+                            
+                        try:
+                            progress_data = json.loads(line)
+                            # Log progress data for debugging
+                            if progress_data.get("status") == "downloading":
+                                self.logger.info(f"Download progress: {progress_data.get('completed', 0)}/{progress_data.get('total', 0)} bytes for {progress_data.get('digest', 'unknown')}")
+                            else:
+                                self.logger.info(f"Status update: {progress_data.get('status')}")
+                            
+                            # Pass through unmodified progress data
+                            yield progress_data
+                        except Exception as e:
+                            self.logger.error(f"Error parsing progress data: {e}")
+                            yield {"error": f"Error parsing progress data: {str(e)}"}
+                            
+        except Exception as e:
+            self.logger.error(f"Error streaming download: {e}")
+            yield {"error": f"Error streaming download: {str(e)}"}
 
     async def get_model_info(self) -> Optional[Dict]:
         """Get information about the downloaded model."""

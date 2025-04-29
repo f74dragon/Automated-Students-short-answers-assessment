@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
+import json
+import asyncio
+import logging
 
 from app.database.connection import get_db
 from app.models.combination import Combination
@@ -171,13 +175,12 @@ async def delete_combination(
     db.commit()
     return None
 
-@router.post("/pull", status_code=status.HTTP_200_OK)
+@router.post("/pull")
 async def pull_model(
     model_request: dict,
-    db: Session = Depends(get_db),
     current_user = Depends(get_admin_user)  # Ensure only admins can pull models
 ):
-    """Pull a new model from Ollama."""
+    """Pull a new model from Ollama with streaming progress updates."""
     model_name = model_request.get("model_name")
     if not model_name:
         raise HTTPException(
@@ -185,20 +188,55 @@ async def pull_model(
             detail="Model name is required"
         )
     
-    try:
-        service = OllamaService()
-        success = await service.download_model(model_name)
-        
-        if not success:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to download model '{model_name}'"
-            )
-        
-        return {"status": "success", "message": f"Model '{model_name}' pulled successfully"}
+    logger = logging.getLogger(__name__)
+    logger.info(f"Starting model pull for '{model_name}'")
     
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error pulling model: {str(e)}"
-        )
+    # Create async generator to stream progress updates
+    async def progress_stream():
+        service = OllamaService()
+        
+        # First check if model exists
+        exists = await service.check_model_exists(model_name)
+        if exists:
+            logger.info(f"Model '{model_name}' already exists")
+            yield json.dumps({"status": "success", "message": f"Model '{model_name}' already exists"}) + "\n"
+            return
+            
+        # If model doesn't exist, stream download progress
+        try:
+            async for progress in service.stream_download_progress(model_name):
+                # Convert progress data to JSON string and yield
+                if "error" in progress:
+                    logger.error(f"Error in download: {progress['error']}")
+                    yield json.dumps({"status": "error", "message": progress["error"]}) + "\n"
+                    return
+                
+                # Enhance logging for download progress
+                if progress.get("status") == "downloading":
+                    completed = progress.get("completed", 0)
+                    total = progress.get("total", 0)
+                    percentage = (completed / total) * 100 if total > 0 else 0
+                    digest = progress.get("digest", "unknown")
+                    
+                    completed_mb = round(completed / (1024 * 1024), 2)
+                    total_mb = round(total / (1024 * 1024), 2)
+                    
+                    logger.info(f"Downloading {digest}: {completed_mb} MB / {total_mb} MB ({percentage:.1f}%)")
+                else:
+                    logger.info(f"Status update: {progress.get('status')}")
+                
+                # Send the complete progress data to the frontend
+                yield json.dumps(progress) + "\n"
+            
+            # Final success message
+            yield json.dumps({"status": "success", "message": f"Model '{model_name}' pulled successfully"}) + "\n"
+            
+        except Exception as e:
+            logger.error(f"Error pulling model: {str(e)}")
+            yield json.dumps({"status": "error", "message": f"Error pulling model: {str(e)}"}) + "\n"
+    
+    # Return a streaming response with the progress updates
+    return StreamingResponse(
+        progress_stream(),
+        media_type="text/event-stream"
+    )
