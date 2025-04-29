@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/CollectionDetails.css";
@@ -31,6 +31,12 @@ export default function CollectionDetails() {
   const [uploadStatus, setUploadStatus] = useState(null);
   const [openStudentId, setOpenStudentId] = useState(null); // State for student dropdown
   const [isGradingAll, setIsGradingAll] = useState(false); // State for Grade All button
+  
+  // Model download progress tracking
+  const [isDownloadingModel, setIsDownloadingModel] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(null);
+  const [downloadStatus, setDownloadStatus] = useState(null);
+  const downloadAbortController = useRef(null);
 
   // Fetch collection details, questions, and students when component mounts
   useEffect(() => {
@@ -342,11 +348,136 @@ export default function CollectionDetails() {
     setOpenStudentId(prevOpenId => (prevOpenId === studentId ? null : studentId));
   };
 
+  // Stream download progress for a model
+  const streamModelDownloadProgress = async (answerID) => {
+    try {
+      // Abort any existing stream
+      if (downloadAbortController.current) {
+        downloadAbortController.current.abort();
+      }
+      
+      // Create new abort controller for this stream
+      downloadAbortController.current = new AbortController();
+      setIsDownloadingModel(true);
+      setDownloadProgress(null);
+      setDownloadStatus(null);
+      
+      // Using fetch instead of axios for better streaming support
+      const response = await fetch(`/api/student-answers/${answerID}/grade/stream`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        signal: downloadAbortController.current.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          console.log("Stream complete");
+          break;
+        }
+        
+        // Decode the chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+        
+        // Process complete lines
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep the last incomplete line in buffer
+        
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          
+          try {
+            const data = JSON.parse(line);
+            
+            // Enhanced debugging
+            console.log("Raw streaming data:", data);
+            
+            // Handle different status messages
+            if (data.status === "error") {
+              setDownloadStatus({
+                success: false,
+                message: data.message || "An error occurred during download"
+              });
+              setIsDownloadingModel(false);
+              return false;
+            } else if (data.status === "success" || data.status === "model_ready") {
+              setDownloadStatus({
+                success: true,
+                message: data.message || `Model ready for grading`
+              });
+              // Clear download progress when complete
+              setIsDownloadingModel(false);
+              setDownloadProgress(null);
+              return true;
+            } else if (data.status === "model_exists") {
+              console.log(`Model ${data.model_name} already exists`);
+              // Continue streaming to see if the model works
+            } else if (data.status === "downloading" || data.total !== undefined) {
+              // Calculate MB for display
+              const completed = data.completed || 0;
+              const total = data.total || 0;
+              const completedMB = Math.round((completed / (1024 * 1024)) * 10) / 10;
+              const totalMB = Math.round((total / (1024 * 1024)) * 10) / 10;
+              
+              console.log(`Progress: ${completedMB}MB / ${totalMB}MB`);
+              
+              // Update progress
+              setDownloadProgress({
+                status: data.status || "downloading",
+                digest: data.digest,
+                total: total,
+                completed: completed,
+                message: `Downloading ${data.model_name || ""} ${data.digest || ""} - ${completedMB} MB / ${totalMB} MB`
+              });
+            } else {
+              // For other status updates
+              console.log("Status update:", data.status);
+              setDownloadProgress({
+                status: data.status || "processing",
+                message: data.message || data.status
+              });
+            }
+          } catch (e) {
+            console.error("Failed to parse JSON:", e, line);
+          }
+        }
+      }
+      
+      // If we get here, the stream completed successfully
+      setIsDownloadingModel(false);
+      return true;
+    } catch (error) {
+      console.error("Stream failed:", error);
+      setDownloadStatus({ 
+        success: false, 
+        message: `Failed to download model: ${error.message}`
+      });
+      setIsDownloadingModel(false);
+      setDownloadProgress(null);
+      return false;
+    }
+  };
+  
   // Grade a student's answer
   const handleGradeAnswer = async (answerID) => {
     try {
       setGradingInProgress(prev => ({ ...prev, [answerID]: true }));
       
+      // First stream the model check/download progress
+      await streamModelDownloadProgress(answerID);
+      
+      // Then proceed with grading
       const gradeRes = await axios.post(`/api/student-answers/${answerID}/grade`);
       
       // Update grades
@@ -368,6 +499,58 @@ export default function CollectionDetails() {
 
   return (
     <div className="collection-details-container">
+      {/* Model Download Progress Bar - Only shown when downloading */}
+      {isDownloadingModel && (
+        <div className="model-download-overlay">
+          <div className="model-download-panel">
+            <h3>Downloading Model</h3>
+            
+            <div className="download-progress">
+              <div className="progress-status">
+                <span className="status-label">Status:</span>
+                <span className="status-value">
+                  {downloadProgress?.message || "Initializing download..."}
+                </span>
+              </div>
+              
+              {/* Show progress bar if we have download data */}
+              {downloadProgress?.total > 0 && (
+                <>
+                  <div className="progress-bar-container">
+                    <div 
+                      className="progress-bar" 
+                      style={{ 
+                        width: `${Math.min(100, (downloadProgress.completed / downloadProgress.total) * 100)}%` 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="progress-details">
+                    <span>
+                      {Math.round((downloadProgress.completed / (1024 * 1024)) * 10) / 10} MB / 
+                      {Math.round((downloadProgress.total / (1024 * 1024)) * 10) / 10} MB
+                    </span>
+                    <span>
+                      {Math.round((downloadProgress.completed / downloadProgress.total) * 100)}%
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            {downloadStatus && (
+              <div className={`download-status ${downloadStatus.success ? 'success' : 'error'}`}>
+                {downloadStatus.message}
+              </div>
+            )}
+            
+            <p className="download-info">
+              Please wait while the model is downloaded. This may take a few minutes.
+              <br/>
+              The model needs to be downloaded only once.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="collection-header">
         <button onClick={() => navigate("/home")} className="back-button">
           ← Back
