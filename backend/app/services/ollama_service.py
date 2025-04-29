@@ -64,9 +64,24 @@ class OllamaService:
                 return True
 
             self.logger.info(f"Downloading model {target_model}...")
-            return True  # Return True immediately as the actual download will be handled by stream_download_progress
+            
+            # Actually do the download now
+            async with httpx.AsyncClient(timeout=None) as client:  # Use no timeout for large downloads
+                response = await client.post(
+                    f"{self.base_url}/api/pull",
+                    json={"model": target_model},
+                    timeout=None
+                )
+                
+                if response.status_code != 200:
+                    self.logger.error(f"Failed to download model: {response.text}")
+                    return False
+                    
+                self.logger.info(f"Successfully requested download for model {target_model}")
+                return True
+                
         except Exception as e:
-            self.logger.error(f"Error checking model existence: {e}")
+            self.logger.error(f"Error downloading model: {e}")
             return False
             
     async def stream_download_progress(self, model_name: str = None):
