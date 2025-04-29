@@ -260,10 +260,11 @@
   height: 200px;
   padding: 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 5px;
   resize: vertical;
   font-family: monospace;
   margin-bottom: 20px;
+  transition: 0.3s ease-in-out;
 }
 
 .prompt-help {
@@ -289,9 +290,10 @@
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 16px;
   margin-bottom: 20px;
+  transition: 0.3s ease-in-out;
 }
 
 .model-details {
@@ -334,41 +336,68 @@
 .step-actions button {
   padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   font-weight: 500;
+  transition: 0.3s ease-in-out;
 }
 
 .btn-primary {
-  background-color: #3498db;
-  color: white;
+  background-color: #F7EA48;
+  color: #861F41;
+  border-radius: 5px;
+  transition: 0.3s ease-in-out;
+  text-decoration: none;
+  display: inline-block;
+  border: none;
 }
 
 .btn-primary:hover {
-  background-color: #2980b9;
+  background-color: #CA4F00;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+}
+
+/* Style for Link elements with btn classes */
+a.btn-primary {
+  padding: 10px 20px;
+  font-weight: 500;
+  text-decoration: none;
 }
 
 .btn-secondary {
   background-color: #95a5a6;
   color: white;
+  border-radius: 5px;
+  transition: 0.3s ease-in-out;
 }
 
 .btn-secondary:hover {
   background-color: #7f8c8d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-danger {
   background-color: #e74c3c;
   color: white;
+  border-radius: 5px;
+  transition: 0.3s ease-in-out;
 }
 
 .btn-danger:hover {
   background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-sm {
   padding: 5px 10px;
   font-size: 12px;
+  border-radius: 5px;
+  transition: 0.3s ease-in-out;
 }
 
 /* Combinations List */
@@ -455,7 +484,7 @@
   flex: 1;
   padding: 10px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: 16px;
 }
 
@@ -539,9 +568,10 @@
 
 .category-filter select {
   padding: 8px;
-  border-radius: 4px;
+  border-radius: 5px;
   border: 1px solid #ddd;
   font-size: 14px;
+  transition: 0.3s ease-in-out;
 }
 
 .prompt-cards {
@@ -686,7 +716,8 @@
   padding: 10px;
   font-size: 16px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 5px;
+  transition: 0.3s ease-in-out;
 }
 
 /* Admin loading */
@@ -707,7 +738,7 @@
   background-color: #e74c3c;
   color: white;
   padding: 10px 15px;
-  border-radius: 4px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
