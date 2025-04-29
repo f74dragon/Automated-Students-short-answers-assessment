@@ -1,0 +1,6 @@
+question,model_answer
+"What is linear regression?","It is a model that predicts a numerical value from a set of independent variables."
+"What is logistic regression?","It is a supervised machine learning model used for binary classification. It uses the sigmoid function to map a linear combination of the input features to a binary class based on where the data point lies in relation to a decision boundary."
+"What is f1 score in classification?","It is the harmonic mean of precision and recall."
+"What is precsion in classification?","It is the ability of the model to correctly identify positive instances out of all instances the model labeled as positive."
+"What is recall in classification?","It is the ability of the model to correctly identify all positive instances in the dataset."
