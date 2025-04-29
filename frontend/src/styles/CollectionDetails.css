@@ -412,6 +412,15 @@
   }
 }
 
+.answer-error {
+  color: #f44336;
+  font-size: 14px;
+  margin: 0;
+  padding: 5px 0;
+  text-align: left;
+  width: 100%;
+}
+
 .modal-buttons {
   display: flex;
   justify-content: flex-end;

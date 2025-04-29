@@ -21,6 +21,7 @@ export default function CollectionDetails() {
   const [newQuestion, setNewQuestion] = useState({ text: "", model_answer: "" });
   const [newStudent, setNewStudent] = useState({ name: "", pid: "" });
   const [newAnswer, setNewAnswer] = useState({ answer: "" });
+  const [answerError, setAnswerError] = useState("");
   const [grades, setGrades] = useState({});
   const [gradingInProgress, setGradingInProgress] = useState({});
   const [showUploadQuestionsModal, setShowUploadQuestionsModal] = useState(false);
@@ -285,6 +286,12 @@ export default function CollectionDetails() {
 
   // Add a new answer for a student
   const handleAddAnswer = async () => {
+    // Validate that answer is not empty
+    if (!newAnswer.answer.trim()) {
+      setAnswerError("Answer cannot be empty");
+      return;
+    }
+    
     try {
       await axios.post("/api/student-answers/", {
         answer: newAnswer.answer,
@@ -297,6 +304,7 @@ export default function CollectionDetails() {
       
       // Reset form and close modal
       setNewAnswer({ answer: "" });
+      setAnswerError("");
       setShowAddAnswerModal(false);
     } catch (err) {
       console.error("Failed to add answer", err);
@@ -562,8 +570,15 @@ export default function CollectionDetails() {
               onChange={(e) => setNewAnswer({ ...newAnswer, answer: e.target.value })}
             />
             <div className="modal-buttons">
-              <button onClick={() => setShowAddAnswerModal(false)}>Cancel</button>
-              <button onClick={handleAddAnswer}>Save Answer</button>
+              {answerError && <p className="answer-error">{answerError}</p>}
+              <button onClick={() => {
+                setShowAddAnswerModal(false);
+                setAnswerError("");
+              }}>Cancel</button>
+              <button 
+                onClick={handleAddAnswer}
+                disabled={!newAnswer.answer.trim()}
+              >Save Answer</button>
             </div>
           </div>
         </div>
