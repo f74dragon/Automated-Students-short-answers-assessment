@@ -1,0 +1,9 @@
+Question,Model Answer,Student Answer,Model Grade
+"What is 12 + 11?","its 23","its 21",0.0
+"What is 13 + 18?","its 31","its 31",1.0
+"What is 18 + 14?","its 32","its 34",0.0
+"What is 18 + 11?","its 29","its 31",0.0
+"What is 16 + 20?","its 36","its 36",1.0
+"What is 17 + 8?","its 25","its 25",1.0
+"What is 19 + 13?","its 32","its 30",0.0
+"What is 5 + 13?","its 18","its 20",0.0
