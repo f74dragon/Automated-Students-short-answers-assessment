@@ -144,6 +144,10 @@
   color: white;
   padding: 20px 0;
   height: 100%;
+  min-height: 100%;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 60px); /* Subtract the taskbar height */
 }
 
 .sidebar-header {
