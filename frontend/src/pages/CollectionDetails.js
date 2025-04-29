@@ -358,7 +358,7 @@ export default function CollectionDetails() {
       
       // Create new abort controller for this stream
       downloadAbortController.current = new AbortController();
-      setIsDownloadingModel(true);
+      setIsDownloadingModel(false); // Initialize to false - only show popup when needed
       setDownloadProgress(null);
       setDownloadStatus(null);
       
@@ -422,6 +422,8 @@ export default function CollectionDetails() {
               return true;
             } else if (data.status === "model_exists") {
               console.log(`Model ${data.model_name} already exists`);
+              // Don't show the download popup for existing models
+              setIsDownloadingModel(false);
               // Continue streaming to see if the model works
             } else if (data.status === "downloading" || data.total !== undefined) {
               // Calculate MB for display
@@ -432,6 +434,9 @@ export default function CollectionDetails() {
               
               console.log(`Progress: ${completedMB}MB / ${totalMB}MB`);
               
+              // Show the popup when we're actually downloading
+              setIsDownloadingModel(true);
+              
               // Update progress
               setDownloadProgress({
                 status: data.status || "downloading",
@@ -439,6 +444,16 @@ export default function CollectionDetails() {
                 total: total,
                 completed: completed,
                 message: `Downloading ${data.model_name || ""} ${data.digest || ""} - ${completedMB} MB / ${totalMB} MB`
+              });
+            } else if (data.status === "model_not_found" || data.status === "downloading_gemma") {
+              // Show the popup when a download is needed
+              setIsDownloadingModel(true);
+              
+              // For other status updates
+              console.log("Status update:", data.status);
+              setDownloadProgress({
+                status: data.status || "processing",
+                message: data.message || data.status
               });
             } else {
               // For other status updates
