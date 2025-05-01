@@ -5,3 +5,4 @@ __pycache__/
 .venv/
 .env
 Automated-Students-short-answers-assessment/llm
+venv/

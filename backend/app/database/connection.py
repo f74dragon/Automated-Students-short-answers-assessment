@@ -2,11 +2,21 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models.base import Base
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Calculate the project root dynamically
+project_root = Path(__file__).resolve().parents[3] # Adjust index based on actual structure if needed
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+# Load appropriate .env file based on DOCKERIZED environment variable
+if os.getenv("DOCKERIZED") == "true":
+    load_dotenv(project_root / ".env.docker")
+else:
+    load_dotenv(project_root / ".env.local")
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+print("Using DATABASE_URL:", DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
 
