@@ -299,13 +299,6 @@ Full step‑by‑step instructions with screenshots reside in **`docs/UserGuide.
 ```
 ---
 
-## License
-
-Distributed under the **MIT License**.
-See [`LICENSE`](LICENSE) for details.
-
----
-
 ## Acknowledgements
 
 * **Dr. Mohamed Farag** – project sponsor & domain expert
