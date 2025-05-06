@@ -1,3 +1,4 @@
+
 # Automated Assessment of Students’ Short Written Answers  
 **Using NLP & Large Language Models (LLMs)**  
 
@@ -62,7 +63,7 @@ It reduces instructor workload, provides rapid feedback to students, and support
 └───────────────┘ │ Gemma3:4b │
                   │ TinyLlama │
                   └───────────┘
-
+````
 
 ---
 
@@ -96,47 +97,161 @@ It reduces instructor workload, provides rapid feedback to students, and support
 
 ---
 
-## Installation
+## Setup & Installation
 
-### Local Setup
+You can run the Automated Student Short Answer Assessment System either locally or using Docker. Follow the instructions below based on your preferred setup.
+
+---
+
+### Local Installation (Windows)
+
+#### 1. Install Prerequisites
+
+Download and install the following tools:
+
+- [Git](https://git-scm.com/downloads/win)
+- [Python](https://www.python.org/downloads/)
+- [Ollama](https://ollama.com/download/windows)
+- [Node.js](https://nodejs.org/en/download)
+- [PostgreSQL 17.4](https://www.postgresql.org/download/windows/)
+
+> During PostgreSQL installation, choose a memorable password.
+
+#### 2. Clone the Repository
 
 ```bash
-# 1. Clone
-git clone https://github.com/<your‑org>/Automated-Students-short-answers-assessment.git
+git clone https://github.com/f74dragon/Automated-Students-short-answers-assessment
 cd Automated-Students-short-answers-assessment
+````
 
-# 2. Backend ── create venv & install
-python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+#### 3. Set Up Environment Variables
+
+This project uses environment variables for configuration. Templates are provided:
+
+* `.env.local.example` — for local development (no Docker)
+* `.env.docker.example` — for Docker-based development
+
+Copy and customize the appropriate file:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Edit `.env.local` to match your PostgreSQL and Ollama settings if different from defaults:
+
+* PostgreSQL: `localhost:5432`
+* Ollama: `http://localhost:11434`
+
+#### 4. Create and Activate Python Virtual Environment
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+#### 5. Configure Database
+
+Run the configuration script and enter your PostgreSQL password twice:
+
+```bash
+configPostWin.bat
+```
+
+#### 6. Install Backend Dependencies
+
+```bash
 pip install -r backend/requirements.txt
-cp .env.example .env  # adjust values
+```
 
-# 3. Frontend ── install & build
+#### 7. Start Backend
+
+```bash
+uvicorn backend.app.main:app --reload --port 8001
+```
+
+#### 8. Set Up Frontend
+
+```bash
 cd frontend
 npm install
 npm run build
-npm start         # dev server on http://localhost:3000
-
-# 4. Backend ── run API
-cd ../backend
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+npm start
 ```
-
-> **Tip**: run `configPostWin.bat` on Windows to auto‑provision PostgreSQL roles.
-
-### Docker Setup
-
-```bash
-# GPU system
-docker compose up --build       # uses docker-compose.yml
-
-# CPU‑only system
-mv docker-compose-no-nvidia.yml docker-compose.yml
-docker compose up --build
-```
-
-The UI becomes available at **[http://localhost:3000](http://localhost:3000)** once all containers are healthy.
 
 ---
+
+### Docker Installation
+
+#### Supported Versions
+
+* Docker Desktop: 4.40.0
+* Docker Engine: 28.0.4
+
+> Later versions may not be compatible.
+
+#### Installation Instructions
+
+* **[Windows/macOS/Linux](https://www.docker.com/products/docker-desktop)** — follow official installation instructions.
+* **Ubuntu (example):**
+
+```bash
+sudo apt-get update
+sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+sudo usermod -aG docker $USER
+```
+
+> Restart your terminal or system after adding your user to the `docker` group.
+
+#### 1. Set Up Environment Variables
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+Ensure `.env.docker` contains valid values for your Docker setup. The included `docker-compose.yml` is pre-configured to read this file.
+
+#### 2. Ollama Setup
+
+If running inside Docker, the Ollama service is included in `docker-compose.yml`. Ensure:
+
+* `.env.docker`: `OLLAMA_URL=http://ollama:11434`
+
+If running Ollama locally, match your `.env.local` or `.env.docker` accordingly.
+
+#### 3. GPU Configuration
+
+* If your system has an **NVIDIA GPU**, use the default `docker-compose.yml`.
+* If it does **not**, rename the configuration file:
+
+```bash
+mv docker-compose-no-nvidia.yml docker-compose.yml
+```
+
+#### 4. Build and Run
+
+```bash
+docker-compose up --build -d
+```
+
+Access the application at:
+
+* Frontend: [http://localhost:3000](http://localhost:3000)
+* Backend API: [http://localhost:8001](http://localhost:8001)
+* Ollama API: [http://localhost:11434](http://localhost:11434)
+* PostgreSQL: `localhost:5432` (if needed)
+
+To view logs:
+
+```bash
+docker-compose logs -f
+```
+
+
+
 
 ## Running the Application
 
@@ -182,18 +297,6 @@ Full step‑by‑step instructions with screenshots reside in **`docs/UserGuide.
 ├─ configPostWin.bat
 └─ README.md
 ```
-
----
-
-## Contributing
-
-Pull requests are welcome!
-
-1. Fork the repo & create a feature branch.
-2. Follow existing **black + isort** formatting (Python) and **eslint** rules (JS).
-3. Ensure all **tests pass** (`pytest` + `npm test`).
-4. Open a PR describing your changes.
-
 ---
 
 ## License
@@ -207,82 +310,9 @@ See [`LICENSE`](LICENSE) for details.
 
 * **Dr. Mohamed Farag** – project sponsor & domain expert
 * **Virginia Tech CS 4624** – course framework & support
-* Open‑source communities of **FastAPI, React, Ollama, Gemma, TinyLlama**
+* Open‑source communities of **FastAPI, React, Ollama, PostgreSQL**
 * Teammates **Arian Assadzadeh**, **Demiana Attia**, **Sanjana Ghanta**, **Tai Phan**, **Trey Walker**
 
 ---
 
-```
-```
 
-
-
-
-# Automated-Students-short-answers-assessment
-Automated Students' short answers assessment for CS4624: Multimedia, Hypertext and information Access
-
-## Setup
-
-venv\Scripts\activate
-
-### Environment Variables
-
-This project requires environment variables for configuration. Example files are provided at the root of the repository:
-
-*   `.env.local.example`: Use this template when running the backend directly on your host machine (without Docker).
-*   `.env.docker.example`: Use this template when running the application stack via `docker-compose`.
-
-**Choose ONE workflow and prepare the corresponding `.env` file:**
-
-1.  **For Running Locally (Without Docker):**
-    *   Copy the local example file to `.env.local`:
-        ```bash
-        cp .env.local.example .env.local
-        ```
-    *   Edit `.env.local` if your local PostgreSQL or Ollama setup uses different connection details than the defaults (`localhost:5432` for Postgres, `http://localhost:11434` for Ollama).
-
-2.  **For Running with Docker:**
-    *   Copy the Docker example file to `.env.docker`:
-        ```bash
-        cp .env.docker.example .env.docker
-        ```
-    *   The `docker-compose.yml` file is pre-configured to load variables from `.env.docker` into the backend container. The default values should work if you are using the included `docker-compose.yml`.
-
-### Ollama Setup
-Go to [https://ollama.com/](https://ollama.com/) to download and install Ollama if you haven't already.
-
-*   **If running locally:** Ensure Ollama is running and accessible at the `OLLAMA_URL` specified in your `.env.local` file (default: `http://localhost:11434`).
-*   **If running with Docker:** The `docker-compose.yml` file includes an Ollama service. Ensure the `OLLAMA_URL` in `.env.docker` points to the service name (default: `http://ollama:11434`).
-
-## Running the Application
-
-### Without Docker (Local Development)
-
-1.  Ensure you have Python (3.x recommended) and pip installed.
-2.  Set up your environment variables by creating and configuring `.env.local` as described in the Setup section.
-3.  Install backend dependencies:
-    ```bash
-    pip install -r backend/requirements.txt
-    ```
-4.  Make sure you have a PostgreSQL server running locally. The database, user, and password must match the `DATABASE_URL` in your `.env.local` file.
-5.  Ensure Ollama is running locally.
-6.  Start the FastAPI backend server from the project root directory:
-    ```bash
-    uvicorn backend.app.main:app --reload --port 8001
-    ```
-7.  **Frontend:** Navigate to the `frontend` directory (`cd frontend`), install dependencies (`npm install`), and start the React development server (`npm start`). The frontend will typically run on `http://localhost:3000`.
-
-### With Docker
-
-1.  Ensure Docker and Docker Compose are installed and running.
-2.  Set up your environment variables by creating `.env.docker` as described in the Setup section.
-3.  From the project root directory, build and start the services:
-    ```bash
-    docker-compose up --build -d
-    ```
-    *   The `-d` flag runs the containers in detached mode (in the background). Omit it if you want to see the logs directly in your terminal.
-4.  The application stack will be accessible at:
-    *   Frontend: `http://localhost:3000`
-    *   Backend API: `http://localhost:8001`
-    *   Ollama API (if needed directly): `http://localhost:11434`
-    *   PostgreSQL (if needed directly): `localhost:5432`
