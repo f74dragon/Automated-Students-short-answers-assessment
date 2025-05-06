@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./backend
+    image: fastapi-backend
+    container_name: fastapi-backend
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db
+      - ollama
+    environment:
+      - DOCKERIZED=true
+    env_file:
+      - .env.docker
+  frontend:
+    build:
+      context: ./frontend
+    image: react-frontend
+    container_name: react-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+  
+  db:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+      
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  ollama_data:
