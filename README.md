@@ -1,12 +1,3 @@
-**Creating README content**
-
-The user seems clear: they only want a README file based on their LaTeX project on "Automated Assessment of Students' Short Written Answers Using NLP and LLMs." I’ll structure the content in markdown format with the needed sections: project overview, features, architecture (frontend, backend, LLM), prerequisites, installation instructions (both local and Docker), usage, placeholders for screenshots, authors, license (probably MIT), and acknowledgments. I’ll provide the structured content without using formatting tools.
-
-
-Thought for 9 seconds
-
-
-````markdown
 # Automated Assessment of Students’ Short Written Answers  
 **Using NLP & Large Language Models (LLMs)**  
 
@@ -71,7 +62,7 @@ It reduces instructor workload, provides rapid feedback to students, and support
 └───────────────┘ │ Gemma3:4b │
                   │ TinyLlama │
                   └───────────┘
-````
+
 
 ---
 
