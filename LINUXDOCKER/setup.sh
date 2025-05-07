@@ -31,7 +31,7 @@ echo "🧠 Starting Ollama in server mode..."
 ollama serve > /var/log/ollama.log 2>&1 &
 
 
-# 6. Build the frontend
+# 6. Build the frontendd
 echo "🛠️ Building frontend..."
 cd frontend
 npm install
