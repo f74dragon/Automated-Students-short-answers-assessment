@@ -26,11 +26,12 @@ service postgresql start
 echo "🧠 Installing Ollama..."
 curl https://ollama.ai/install.sh | sh
 
-# 6. Build and serve the frontend
-echo "🛠️ Setting up frontend..."
+# 6. Build the frontend
+echo "🛠️ Building frontend..."
 cd frontend
 npm install
 npm run build
+npm start &   # Start React app in background
 cd ..
 
 # 7. Set up Python virtual environment
@@ -51,20 +52,12 @@ cat <<EOF > .env
 DOCKERIZED=false
 EOF
 
-# 10. PostgreSQL initialization instructions
-echo "📘 Database setup manual step (run inside psql):"
-echo
-echo "  1. Run: 'su - postgres'"
-echo "  2. Then: 'psql'"
-echo "  3. Inside psql, run:"
-echo "     CREATE ROLE \"user\" LOGIN PASSWORD 'mypassword';"
-echo "     CREATE DATABASE mydatabase OWNER \"user\";"
-echo "     \q to exit"
-echo
-echo "🔥 Once that's done, you can start the backend with:"
-echo "  source venv/bin/activate"
-echo "  uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001"
-echo
-echo "✅ Frontend is already built and can be served via npm start in ./frontend"
+# 10. Initialize PostgreSQL user and database
+echo "🗄️ Creating PostgreSQL user and database..."
+su - postgres -c "psql -c \"CREATE ROLE \\\"user\\\" LOGIN PASSWORD 'mypassword';\" || true"
+su - postgres -c "psql -c \"CREATE DATABASE mydatabase OWNER \\\"user\\\";\" || true"
 
-echo "✅ Setup complete."
+# 11. Start FastAPI backend
+echo "🧠 Starting FastAPI backend..."
+source venv/bin/activate
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8001
