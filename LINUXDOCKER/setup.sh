@@ -26,6 +26,11 @@ service postgresql start
 echo "🧠 Installing Ollama..."
 curl https://ollama.ai/install.sh | sh
 
+# 5b. Start Ollama server in background
+echo "🧠 Starting Ollama in server mode..."
+ollama serve > /var/log/ollama.log 2>&1 &
+
+
 # 6. Build the frontend
 echo "🛠️ Building frontend..."
 cd frontend
@@ -95,5 +100,3 @@ echo "🧠 Starting FastAPI backend..."
 source venv/bin/activate
 cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
-
-ollama serve
