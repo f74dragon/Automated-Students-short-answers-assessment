@@ -31,8 +31,41 @@ echo "🛠️ Building frontend..."
 cd frontend
 npm install
 npm run build
-npm start &   # Start React app in background
 cd ..
+
+# 6b. Install and configure Nginx
+echo "📦 Installing and configuring Nginx..."
+apt install -y nginx
+
+# Create custom nginx.conf
+cat <<EOF > /etc/nginx/sites-available/default
+server {
+    listen 80;
+    root /var/www/html;
+
+    location /api {
+        proxy_pass http://localhost:8001;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+}
+EOF
+
+# Move React build output to Nginx directory
+rm -rf /var/www/html/*
+cp -r frontend/build/* /var/www/html/
+
+# Start Nginx
+echo "🚀 Starting Nginx server..."
+service nginx start
+
+
 
 # 7. Set up Python virtual environment
 echo "🐍 Creating Python virtual environment..."
@@ -60,4 +93,7 @@ su - postgres -c "psql -c \"CREATE DATABASE mydatabase OWNER \\\"user\\\";\" || 
 # 11. Start FastAPI backend
 echo "🧠 Starting FastAPI backend..."
 source venv/bin/activate
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8001
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
+
+ollama serve
