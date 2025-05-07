@@ -12,16 +12,15 @@ RUN apt update && apt install -y \
 COPY setup.sh /setup.sh
 RUN chmod +x /setup.sh
 
-# Expose port 3000 for the React frontend or any app
+# Set working directory
+WORKDIR /project
+
+# Expose ports
 EXPOSE 3000
 EXPOSE 8001
 EXPOSE 80
 EXPOSE 5432
 EXPOSE 11434
 
-# Set working directory
-WORKDIR /project
-
-# Run the setup script on container startup
-CMD /setup.sh && bash
-
+# Run setup and open shell
+CMD ["/bin/bash", "-c", "/setup.sh && bash"]
