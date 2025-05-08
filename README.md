@@ -1,53 +1,59 @@
+# Automated Assessment of Students’ Short Written Answers
 
-# Automated Assessment of Students’ Short Written Answers  
-**Using NLP & Large Language Models (LLMs)**  
+**Using NLP & Large Language Models (LLMs)**
 
-> CS 4624 Multimedia/Hypertext • Virginia Tech  
-> Instructor & Client: **Dr. Mohamed Farag**
+> CS 4624 Multimedia/Hypertext • Virginia Tech
+> Instructor & Client: **Dr. Mohamed Farag**
 
 ---
 
-## Table of Contents
-1. [Project Overview](#project-overview)  
-2. [Key Features](#key-features)  
-3. [System Architecture](#system-architecture)  
-4. [Tech Stack](#tech-stack)  
-5. [Prerequisites](#prerequisites)  
+## Table of Contents
+
+1. [Project Overview](#project-overview)
+2. [Key Features](#key-features)
+3. [System Architecture](#system-architecture)
+4. [Tech Stack](#tech-stack)
+5. [Prerequisites](#prerequisites)
 6. [Setup & Installation](#setup--installation)
-   - [Local Installation](#local--installation)  
-   - [Docker Installation](#docker-installation)  
-7. [Running the Application](#running-the-application)  
-8. [Usage Guide](#usage-guide)  
-9. [Repository Structure](#repository-structure)  
-10. [Contributing](#contributing)  
-11. [License](#license)  
-12. [Acknowledgements](#acknowledgements)  
+
+   * [Local Installation](#local-installation)
+   * [Docker Installation](#docker-installation)
+7. [Running the Application](#running-the-application)
+8. [Usage Guide](#usage-guide)
+9. [Repository Structure](#repository-structure)
+10. [Contributing](#contributing)
+11. [License](#license)
+12. [Acknowledgements](#acknowledgements)
 
 ---
 
 ## Project Overview
-This project delivers a **full‑stack web platform** that automatically grades student short‑answer responses with the help of **open‑source Large Language Models**.  
-It reduces instructor workload, provides rapid feedback to students, and supports flexible grading modes (rubric‑based, concept‑based, or model‑answer comparison).
+
+This project delivers a **full-stack web platform** that automatically grades student short-answer responses with the help of **open-source Large Language Models**.
+It reduces instructor workload, provides rapid feedback to students, and supports flexible grading modes (rubric-based, concept-based, or model-answer comparison).
 
 ---
 
 ## Key Features
-- **JWT‑secured authentication** (NextAuth.js + FastAPI)  
-- Upload of questions & student answers via CSV or UI forms  
-- Three grading modes (Rubric • Concepts • Sample Answer)  
-- **Admin panel** for:  
-  - Pulling LLMs from the [Ollama](https://ollama.com/library) registry  
-  - Crafting custom grading prompts  
-  - Pairing prompts with models  
-  - Running benchmarking tests (Mean Absolute Error)  
-- **Testing Wizard** to compare multiple model/prompt pairs  
-- Modular **micro‑service‑inspired** Docker architecture  
-- Detailed developer & user documentation
+
+* **JWT-secured authentication** (NextAuth.js + FastAPI)
+* Upload of questions & student answers via CSV or UI forms
+* Three grading modes (Rubric • Concepts • Sample Answer)
+* **Admin panel** for:
+
+  * Pulling LLMs from the [Ollama](https://ollama.com/library) registry
+  * Crafting custom grading prompts
+  * Pairing prompts with models
+  * Running benchmarking tests (Mean Absolute Error)
+* **Testing Wizard** to compare multiple model/prompt pairs
+* Modular **micro-service-inspired** Docker architecture
+* Detailed developer & user documentation
 
 ---
 
 ## System Architecture
-```text
+
+```
 ┌─────────────────────────────┐
 │           React             │
 │  (NextAuth.js, Axios, CSS)  │
@@ -63,7 +69,7 @@ It reduces instructor workload, provides rapid feedback to students, and support
 └───────────────┘ │ Gemma3:4b │
                   │ TinyLlama │
                   └───────────┘
-````
+```
 
 ---
 
@@ -71,105 +77,151 @@ It reduces instructor workload, provides rapid feedback to students, and support
 
 | Layer      | Technology                                     |
 | ---------- | ---------------------------------------------- |
-| Frontend   | **React 19**, React‑Router 7, Axios            |
+| Frontend   | **React 19**, React-Router 7, Axios            |
 | Backend    | **FastAPI**, Pydantic, SQLAlchemy              |
 | Auth       | NextAuth.js (frontend) • JWT (backend)         |
-| LLM Engine | **Ollama** serving Gemma 3‑4b, TinyLlama, etc. |
-| Database   | **PostgreSQL 17**, Alembic migrations          |
-| DevOps     | **Docker Compose**, GitHub Actions (optional)  |
+| LLM Engine | **Ollama** serving Gemma 3-4b, TinyLlama, etc. |
+| Database   | **PostgreSQL 17**, Alembic migrations          |
+| DevOps     | **Docker Compose**, GitHub Actions (optional)  |
 
 ---
 
 ## Prerequisites
 
-### Local (bare‑metal)
+### Local (bare-metal)
 
-* **Python ≥ 3.10**
-* **Node.js ≥ 18** (includes `npm`)
-* **PostgreSQL 17**
-* **Ollama** (for on‑device LLMs)
+* **Python ≥ 3.10**
+* **Node.js ≥ 18** (includes `npm`)
+* **PostgreSQL 17**
+* **Ollama** (for on-device LLMs)
 * Git (for cloning)
 
 ### Docker
 
-* **Docker Desktop** ≥ 4.40 (incl. Compose v2)
+* **Docker Desktop** ≥ 4.40 (incl. Compose v2)
 * **GPU** optional for faster inference (rename `docker-compose-no-nvidia.yml` if none)
 
 ---
 
 ## Setup & Installation
 
-You can run the Automated Student Short Answer Assessment System either locally or using Docker. Follow the instructions below based on your preferred setup.
+You may choose to install and run the system locally, through terminal, or through Docker (with 1 or 4 images).
 
----
+### Local Installation
 
-### Local Installation (Windows)
+#### GUI Workflow (Windows)
 
-#### 1. Install Prerequisites
+1. **Install prerequisites**:
 
-Download and install the following tools:
+   * Git: [https://git-scm.com/downloads/win](https://git-scm.com/downloads/win)
+   * Python: [https://www.python.org/downloads/](https://www.python.org/downloads/)
+   * Ollama: [https://ollama.com/download/windows](https://ollama.com/download/windows)
+   * Node.js: [https://nodejs.org/en/download](https://nodejs.org/en/download)
+   * PostgreSQL 17.4: [https://www.postgresql.org/download/windows/](https://www.postgresql.org/download/windows/)
 
-- [Git](https://git-scm.com/downloads/win)
-- [Python](https://www.python.org/downloads/)
-- [Ollama](https://ollama.com/download/windows)
-- [Node.js](https://nodejs.org/en/download)
-- [PostgreSQL 17.4](https://www.postgresql.org/download/windows/)
+2. **Clone the repository**:
 
-> During PostgreSQL installation, choose a memorable password.
+   ```cmd
+   git clone https://github.com/f74dragon/Automated-Students-short-answers-assessment
+   cd Automated-Students-short-answers-assessment
+   ```
 
-#### 2. Clone the Repository
+3. **Configure the project**:
+
+   ```cmd
+   copy .env.local.example .env.local
+   notepad .env.local  # Set DOCKERIZED=false
+   python -m venv venv
+   configPostWin.bat
+   ```
+
+4. **Build and launch the frontend**:
+
+   ```cmd
+   cd frontend
+   npm install
+   npm run build
+   npm start
+   ```
+
+5. **Launch the backend** (in a new terminal):
+
+   ```cmd
+   venv\Scripts\activate
+   cd backend
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+   ```
+
+### Terminal-Only Workflow
+
+#### Windows (PowerShell)
+
+```powershell
+winget install --id Git.Git -e
+winget install --id Python.Python.3.12 -e
+winget install --id OpenJS.NodeJS.LTS -e
+winget install --id PostgreSQL.PostgreSQL -e
+winget install --id Ollama.Ollama -e
+```
+
+#### macOS
+
+```bash
+brew update
+brew install git python@3.12 node postgresql ollama
+```
+
+#### Ubuntu / Debian
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git python3 python3-venv nodejs npm postgresql postgresql-contrib
+curl https://ollama.ai/install.sh | sh
+```
+
+#### Verify installations and run Ollama
+
+```bash
+ollama serve
+```
+
+#### Setup project
 
 ```bash
 git clone https://github.com/f74dragon/Automated-Students-short-answers-assessment
 cd Automated-Students-short-answers-assessment
-````
-
-#### 3. Set Up Environment Variables
-
-This project uses environment variables for configuration. Templates are provided:
-
-* `.env.local.example` — for local development (no Docker)
-* `.env.docker.example` — for Docker-based development
-
-Copy and customize the appropriate file:
-
-```bash
-cp .env.local.example .env.local
+cp .env.local.example .env.local  # or use 'copy' on Windows
+# Edit .env.local and set DOCKERIZED=false
 ```
 
-Edit `.env.local` to match your PostgreSQL and Ollama settings if different from defaults:
+#### PostgreSQL Initialization
 
-* PostgreSQL: `localhost:5432`
-* Ollama: `http://localhost:11434`
+```bash
+# Windows
+configPostWin.bat
 
-#### 4. Create and Activate Python Virtual Environment
+# macOS / Linux
+sudo -u postgres psql
+CREATE ROLE "user" LOGIN PASSWORD 'mypassword';
+CREATE DATABASE mydatabase OWNER "user";
+\q
+```
+
+#### Backend Setup
 
 ```bash
 python -m venv venv
+# Windows
 venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-#### 5. Configure Database
-
-Run the configuration script and enter your PostgreSQL password twice:
-
-```bash
-configPostWin.bat
-```
-
-#### 6. Install Backend Dependencies
-
-```bash
-pip install -r backend/requirements.txt
-```
-
-#### 7. Start Backend
-
-```bash
-uvicorn backend.app.main:app --reload --port 8001
-```
-
-#### 8. Set Up Frontend
+#### Frontend Setup (second terminal)
 
 ```bash
 cd frontend
@@ -180,102 +232,77 @@ npm start
 
 ---
 
-### Docker Installation
-
-#### Supported Versions
-
-* Docker Desktop: 4.40.0
-* Docker Engine: 28.0.4
-
-> Later versions may not be compatible.
-
-#### Installation Instructions
-
-* **[Windows/macOS/Linux](https://www.docker.com/products/docker-desktop)** — follow official installation instructions.
-* **Ubuntu (example):**
+### All-in-One Docker Image
 
 ```bash
-sudo apt-get update
-sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io
-sudo usermod -aG docker $USER
+git clone https://github.com/f74dragon/Automated-Students-short-answers-assessment.git
+cd Automated-Students-short-answers-assessment/LinuxDocker
+# Linux/macOS
+./rebuild.sh
+# Windows
+./rebuild.bat
 ```
 
-> Restart your terminal or system after adding your user to the `docker` group.
+Then visit: [http://localhost:3000](http://localhost:3000)
 
-#### 1. Set Up Environment Variables
+---
 
-```bash
-cp .env.docker.example .env.docker
-```
+### Docker Installation (4-Image Compose)
 
-Ensure `.env.docker` contains valid values for your Docker setup. The included `docker-compose.yml` is pre-configured to read this file.
+1. Clone the repo:
 
-#### 2. Ollama Setup
+   ```bash
+   git clone https://github.com/f74dragon/Automated-Students-short-answers-assessment
+   cd Automated-Students-short-answers-assessment
+   cp .env.docker.example .env.docker
+   ```
 
-If running inside Docker, the Ollama service is included in `docker-compose.yml`. Ensure:
+2. For non-NVIDIA systems:
 
-* `.env.docker`: `OLLAMA_URL=http://ollama:11434`
+   ```bash
+   mv docker-compose-no-nvidia.yml docker-compose.yml
+   ```
 
-If running Ollama locally, match your `.env.local` or `.env.docker` accordingly.
+3. Build and run:
 
-#### 3. GPU Configuration
+   ```bash
+   docker compose up --build
+   ```
 
-* If your system has an **NVIDIA GPU**, use the default `docker-compose.yml`.
-* If it does **not**, rename the configuration file:
+| Service    | URL                                              |
+| ---------- | ------------------------------------------------ |
+| Frontend   | [http://localhost:3000](http://localhost:3000)   |
+| Backend    | [http://localhost:8001](http://localhost:8001)   |
+| Ollama     | [http://localhost:11434](http://localhost:11434) |
+| PostgreSQL | `localhost:5432`                                 |
 
-```bash
-mv docker-compose-no-nvidia.yml docker-compose.yml
-```
+To shut down: `docker compose down -v`
 
-#### 4. Build and Run
-
-```bash
-docker-compose up --build -d
-```
-
-Access the application at:
-
-* Frontend: [http://localhost:3000](http://localhost:3000)
-* Backend API: [http://localhost:8001](http://localhost:8001)
-* Ollama API: [http://localhost:11434](http://localhost:11434)
-* PostgreSQL: `localhost:5432` (if needed)
-
-To view logs:
-
-```bash
-docker-compose logs -f
-```
-
-
-
+---
 
 ## Running the Application
 
 1. Open [http://localhost:3000](http://localhost:3000)
-2. **Sign up / Log in** (first user may create an *Admin* account)
-3. Create **Collections**, upload **Questions** & **Student Answers** (CSV)
-4. Choose or create **Prompt–Model Pairs**
-5. Click **Grade** (single or bulk) to generate scores & feedback
-6. Use **Admin → Testing Wizard** to benchmark new models/prompts
+2. Sign up or log in (first user can become admin)
+3. Upload questions and answers (CSV or UI)
+4. Choose or define model+prompt pair
+5. Click **Grade**
+6. (Optional) Benchmark via Admin panel
 
 ---
 
 ## Usage Guide
 
-Full step‑by‑step instructions with screenshots reside in **`docs/UserGuide.pdf`** (or see the compiled LaTeX in `/report/`). The quick flow:
+See `docs/UserGuide.pdf` or the `/report/` directory. Quick steps:
 
-| Step | Action                             |
-| ---- | ---------------------------------- |
-| 1    | **Login / Sign Up**                |
-| 2    | **Create Collection**              |
-| 3    | **Upload** questions & answers     |
-| 4    | **Select Pair** (prompt + model)   |
-| 5    | **Grade** → view results           |
-| 6    | Optional: **Admin Panel** for LLMs |
+| Step | Action                           |
+| ---- | -------------------------------- |
+| 1    | Log in or sign up                |
+| 2    | Create a collection              |
+| 3    | Upload questions and answers     |
+| 4    | Select model/prompt pair         |
+| 5    | Click "Grade" to generate scores |
+| 6    | Admin access to LLMs & testing   |
 
 ---
 
@@ -297,15 +324,12 @@ Full step‑by‑step instructions with screenshots reside in **`docs/UserGuide.
 ├─ configPostWin.bat
 └─ README.md
 ```
+
 ---
 
 ## Acknowledgements
 
-* **Dr. Mohamed Farag** – project sponsor & domain expert
-* **Virginia Tech CS 4624** – course framework & support
-* Open‑source communities of **FastAPI, React, Ollama, PostgreSQL**
-* Teammates **Arian Assadzadeh**, **Demiana Attia**, **Sanjana Ghanta**, **Tai Phan**, **Trey Walker**
-
----
-
-
+* **Dr. Mohamed Farag** – project sponsor & domain expert
+* **Virginia Tech CS 4624** – course framework & support
+* Open-source contributors of FastAPI, React, Ollama, PostgreSQL
+* Teammates: **Arian Assadzadeh**, **Demiana Attia**, **Sanjana Ghanta**, **Tai Phan**, **Trey Walker**
