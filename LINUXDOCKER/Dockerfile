@@ -6,11 +6,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y \
     git python3 python3-venv python3-pip \
     nodejs npm \
-    postgresql postgresql-contrib curl
+    postgresql postgresql-contrib \
+    curl dos2unix
 
 # Copy setup script
 COPY setup.sh /setup.sh
-RUN chmod +x /setup.sh
+
+# Convert line endings (in case it's CRLF from Windows)
+RUN dos2unix /setup.sh && chmod +x /setup.sh
 
 # Set working directory
 WORKDIR /project
