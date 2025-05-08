@@ -231,7 +231,7 @@ npm start
 ```
 
 ---
-
+## Docker Installation
 ### All-in-One Docker Image
 
 ```bash
