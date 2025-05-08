@@ -1,6 +1,8 @@
 #!/bin/bash
 docker stop my-ubuntu-container 2>/dev/null && docker rm my-ubuntu-container 2>/dev/null
 
+chmod +x setup.sh
+
 docker build -t my-ubuntu-dev .
 
 docker run -it \
